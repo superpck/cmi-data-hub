@@ -194,21 +194,26 @@ export class ApiRequest {
 
   private async saveBlobToFile(blob: Blob, suggestedName: string): Promise<void> {
     if (typeof (window as any).showSaveFilePicker === 'function') {
-      const handle: FileSystemFileHandle = await (window as any).showSaveFilePicker({
-        suggestedName,
-        types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } else {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = suggestedName;
-      a.click();
-      URL.revokeObjectURL(url);
+      try {
+        const handle: FileSystemFileHandle = await (window as any).showSaveFilePicker({
+          suggestedName,
+          types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (e: unknown) {
+        if (e instanceof DOMException && e.name === 'AbortError') throw e;
+        // SecurityError: user gesture lost after async work — fall through to anchor fallback
+      }
     }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = suggestedName;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async onSubmit(): Promise<void> {
