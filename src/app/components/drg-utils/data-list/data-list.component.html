@@ -1,0 +1,195 @@
+<nav class="pk-breadcrumb">
+  <ol class="pk-breadcrumb-list">
+    <li class="pk-breadcrumb-item">Home</li>
+    <li class="pk-breadcrumb-item pk-breadcrumb-item--active">Data List</li>
+  </ol>
+</nav>
+
+<div class="pk-card m-4 no-print pk-font-bai-jamjuree">
+  <div class="pk-card-header text-xl text-sky-600 font-bold tracking-tight flex items-center gap-2"
+    style="font-size: 1.4rem;">
+    <pk-icon iconSet="google" name="folder" [size]="22" />
+    ทะเบียนผู้ป่วยใน
+  </div>
+  <div class="pk-card-body">
+    <div class="flex flex-wrap gap-4">
+      <div class="formControl">
+        <label>จำหน่ายเดือน</label>
+        <select name="month" [(ngModel)]="month" [disabled]="loading()" (change)="resetVar()" style="width: 120px;">
+          @for (item of thMonth; track $index) {
+          <option [value]="$index">{{ item }}</option>
+          }
+        </select>
+      </div>
+      <div class="formControl">
+        <label>ปี</label>
+        <select name="year" [(ngModel)]="year" [disabled]="loading()" (change)="resetVar()" style="width: 85px;">
+          @for (item of yearList; track item) {
+          <option [value]="item">{{ item }}</option>
+          }
+        </select>
+      </div>
+      <div class="formControl">
+        <label>เงื่อนไข</label>
+        <select name="searchType" [(ngModel)]="searchType" [disabled]="loading()"
+          (change)="resetVar(); searchValue = ''">
+          <option value="HN">HN</option>
+          <option value="AN">AN</option>
+          <option value="DATEADM">Admit</option>
+          <option value="DATEDSC">D/C</option>
+          <option value="DRPDX">Dr PDX</option>
+          <option value="DISCHS">D/C Status</option>
+          <option value="DISCHT">D/C Type</option>
+          <option value="INSURE">สิทธิ์</option>
+          <option value="ADJRW">AdjRW เท่ากับ</option>
+          <option value="RWM">AdjRW มากกว่า</option>
+          <option value="RWL">AdjRW น้อยกว่า</option>
+          <option value="PRICEM">ค่ารักษามากกว่า</option>
+          <option value="PRICEL">ค่ารักษาน้อยกว่า</option>
+        </select>
+      </div>
+      <div class="formControl">
+        <label>คำค้นตามเงื่อนไข</label>
+        @if (searchType !== 'DATEADM' && searchType !== 'DATEDSC') {
+        <input type="text" name="searchValue" [(ngModel)]="searchValue" [disabled]="loading()" (change)="resetVar()"
+          [placeholder]="['RWM','RWL','PRICEM','PRICEL'].includes(searchType) ? 'ระบุคำค้น' : searchType">
+        } @else {
+        <input type="date" name="searchDate" [(ngModel)]="searchDate" [disabled]="loading()" (change)="resetVar()">
+        }
+      </div>
+      <div class="py-3 mt-4 pk-btn-group">
+        <button class="pk-btn pk-btn-sm pk-btn-outline text-white" [disabled]="loading()" (click)="getData()">
+          <pk-icon iconSet="google" name="search" [size]="20" /> ค้นหา
+        </button>
+        <button class="pk-btn pk-btn-sm pk-btn-outline text-white" [disabled]="loading() || !dataList.length"
+          (click)="onExport()">
+          <pk-icon iconSet="google" name="download" [size]="20" /> ส่งออกข้อมูล
+        </button>
+        @if (loading()) {
+        <span class="pk-spinner"></span>
+        }
+      </div>
+    </div>
+
+    <div class="w-full min-h-100 mt-2">
+      <div class="flex justify-between items-center mb-2">
+        <h1 class="text-lg font-bold text-sky-600">
+          พบข้อมูล
+          <span class="ml-2 text-red-500">{{ rowCount || 0 | number }} รายการ</span>
+        </h1>
+      </div>
+
+      <div class="overflow-auto" style="max-height: 480px;">
+        <table class="w-full table-auto border-collapse border border-gray-300">
+          <thead class="sticky top-0 z-10">
+            <tr class="bg-gray-200 text-gray-800">
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">#</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">AN</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">Admit</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">D/C</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">Los</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">PDx</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">DRG</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">AdjRW</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">สิทธิ์</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap">ค่ารักษา</th>
+              <th class="border border-gray-300 px-2 py-1 whitespace-nowrap"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of dataList; track row.AN; let ind = $index) {
+            <tr>
+              <td class="border border-gray-300 px-2 py-1 whitespace-nowrap">{{ (currentPage - 1) * itemsPerPage + ind
+                +
+                1 }}</td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">{{ row.AN }}</td>
+              <td class="border border-gray-300 px-2 text-left whitespace-nowrap">{{ row.DATEADM | pkDate:'d m
+                yyyy':'abbr':'th':'BE' }} {{ row.TIMEADM }}</td>
+              <td class="border border-gray-300 px-2 text-left whitespace-nowrap">{{ row.DATEDSC | pkDate:'d m
+                yyyy':'abbr':'th':'BE' }} {{ row.TIMEDSC }}</td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">{{ row.LOS | number }}</td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">{{ row.PDX }}</td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">{{ row.DRG }}</td>
+              <td class="border border-gray-300 px-2 text-right whitespace-nowrap">{{ row.ADJRW | number:'.4-4' }}
+              </td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">{{ row.INSURE }}</td>
+              <td class="border border-gray-300 px-2 text-right whitespace-nowrap">{{ row.TOTAL | number }}</td>
+              <td class="border border-gray-300 px-2 whitespace-nowrap">
+                <button type="button" (click)="showDetail(row)" class="text-blue-500 hover:text-blue-700"
+                  aria-label="ดูรายละเอียด">
+                  <pk-icon name="folder-open" [size]="18" />
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (dataList.length > 0) {
+      <div class="flex justify-between items-center mt-4 no-print">
+        <span class="text-gray-600 text-sm">
+          บรรทัดต่อหน้า
+          <select name="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="setPage()" class="border rounded px-1 mx-1">
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+          </select>
+          &nbsp; หน้าที่
+          <select name="currentPage" [(ngModel)]="currentPage" (change)="gotoPage()" class="border rounded px-1 mx-1">
+            @for (item of pageList; track item) {
+            <option [value]="item">{{ item }}</option>
+            }
+          </select>/ {{ pageCount }}
+        </span>
+        <div class="flex gap-2">
+          <button type="button" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+            [disabled]="loading() || currentPage === 1" (click)="onPreviousPage()">
+            <pk-icon iconSet="google" name="chevron_left" [size]="20" />Prev
+          </button>
+          <button type="button" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+            [disabled]="loading() || currentPage === pageCount" (click)="onNextPage()">
+            Next<pk-icon iconSet="google" name="chevron_right" [size]="20" />
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+
+    @if (modalDetail()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true"
+      aria-labelledby="modal-an-title">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75" (click)="modalDetail.set(false)"></div>
+      <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 overflow-hidden z-10">
+        <div class="bg-gray-100 px-4 py-2 flex justify-between items-center">
+          <span id="modal-an-title" class="text-sm text-blue-700 font-medium">
+            AN: {{ currentRow.AN }} &nbsp; HN: {{ currentRow.HN }}
+          </span>
+          <button type="button" (click)="modalDetail.set(false)" class="text-gray-500 hover:text-gray-700 text-lg"
+            aria-label="ปิด">✗</button>
+        </div>
+        <div class="bg-white px-4 py-4 overflow-y-auto" style="max-height: 70vh;">
+          <table class="w-full text-sm">
+            @for (fld of structure; track fld) {
+            <tr>
+              <td class="text-right whitespace-nowrap pr-3 text-gray-500 w-40">{{ fld }}</td>
+              @if (!fld.includes('DATE')) {
+              <td class="whitespace-nowrap">{{ currentRow[fld] }}</td>
+              } @else {
+              <td class="whitespace-nowrap">{{ currentRow[fld] | pkDate:'D MMMM YYYY':'full':'th':'BE' }}</td>
+              }
+            </tr>
+            }
+          </table>
+        </div>
+        <div class="bg-gray-50 px-4 py-2 flex justify-end">
+          <button type="button" (click)="modalDetail.set(false)"
+            class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400">ปิด</button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

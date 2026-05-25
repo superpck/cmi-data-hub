@@ -1,0 +1,37 @@
+<main class="login-page" [style.backgroundImage]="'url(images/background.png)'">
+  <div class="login-card pk-font-bai-jamjuree">
+    <header class="brand">
+      <div class="logo-ring">
+        <img ngSrc="images/logomoph.png" width="80" height="80" alt="กระทรวงสาธารณสุข" priority />
+      </div>
+      <!-- <h1>{{ config.appName }}</h1> -->
+      <h1>MOPH HIS Connect</h1>
+      <p class="subtitle grid grid-cols-1">
+        <span class="text-xl text-green-900 font-pk-prompt">กระทรวงสาธารณสุข</span>
+        <span>สำหรับ {{ config.appName }}</span>
+      </p>
+    </header>
+
+    <section class="providers" aria-label="ตัวเลือกการเข้าสู่ระบบ">
+      <button class="provider-btn provider-btn--primary" type="button" (click)="loginByProviderID()">
+        <img ngSrc="images/providerid.png" width="120" height="52" alt="Provider iD" priority />
+        <span>เข้าสู่ระบบด้วย Provider iD</span>
+      </button>
+
+      <!-- <button class="provider-btn provider-btn--primary" type="button" (click)="loginByMyMOPH()">
+        <img ngSrc="images/mymoph.webp" width="53" height="53" alt="MyMOPH" priority />
+        <span>เข้าสู่ระบบด้วย MyMOPH</span>
+      </button> -->
+    </section>
+
+    <footer class="footer text-xs text-gray-500 text-center" style="font-size: 0.6rem;">
+      <p class="version">Version {{ config.version }}-{{ config.subVersion }}</p>
+      <p class="copyright">
+        <!-- Copyright &copy; 2026 -->
+        <a class="copyright" href="https://cmi.moph.go.th" target="_blank" rel="noopener noreferrer">
+          ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร กระทรวงสาธารณสุข
+        </a>
+      </p>
+    </footer>
+  </div>
+</main>

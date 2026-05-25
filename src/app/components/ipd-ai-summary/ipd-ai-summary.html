@@ -1,0 +1,494 @@
+<div class="pk-font-sarabun flex h-screen bg-white dark:bg-gray-800 overflow-hidden">
+
+  <!-- Mobile backdrop -->
+  @if (sidebarOpen()) {
+  <div class="fixed inset-0 z-30 bg-black/50 lg:hidden" aria-hidden="true" (click)="sidebarOpen.set(false)"></div>
+  }
+
+  <!-- ── Sidebar ───────────────────────────────────────────────────────── -->
+  <aside class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col shrink-0
+           bg-gray-700 dark:bg-gray-950 text-white
+           transition-all duration-300
+           -translate-x-full lg:translate-x-0
+           lg:relative lg:inset-auto overflow-hidden" [class.translate-x-0]="sidebarOpen()"
+    [class.sidebar-collapsed]="sidebarCollapsed()" [class.cursor-pointer]="sidebarCollapsed()"
+    (click)="sidebarCollapsed.set(false)" aria-label="sidebar">
+
+    <!-- Header -->
+    <div class="flex items-center border-b border-gray-600 dark:border-gray-700 shrink-0">
+      <!-- Logo + title -->
+      <div class="flex items-center gap-2 flex-1 overflow-hidden min-w-0 py-4" [class.px-4]="!sidebarCollapsed()"
+        [class.justify-center]="sidebarCollapsed()">
+        <img ngSrc="images/logomoph.png" width="28" height="28" alt="MOPH" priority class="shrink-0" />
+        @if (!sidebarCollapsed()) {
+        <span class="font-semibold text-sm truncate">IPD Summary</span>
+        }
+      </div>
+      <!-- Desktop collapse toggle (hidden when collapsed) -->
+      @if (!sidebarCollapsed()) {
+      <button type="button" (click)="sidebarCollapsed.set(true); $event.stopPropagation()" class="hidden lg:flex items-center justify-center shrink-0 p-2 mr-2 rounded-lg text-gray-300
+                 hover:text-white hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors" aria-label="ย่อ sidebar"
+        aria-expanded="true">
+        <pk-icon iconSet="google" name="first_page" [size]="18" />
+      </button>
+      }
+    </div>
+
+    <!-- New chat -->
+    <div class="pt-3 pb-1" [class.px-3]="!sidebarCollapsed()" [class.px-2]="sidebarCollapsed()">
+      <button type="button" (click)="onNewChat()" [title]="sidebarCollapsed() ? 'เพิ่ม AN ใหม่' : ''" class="w-full flex items-center rounded-lg py-2 text-sm text-gray-200
+               border border-gray-500 dark:border-gray-600 hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
+        [class.gap-2]="!sidebarCollapsed()" [class.px-3]="!sidebarCollapsed()"
+        [class.justify-center]="sidebarCollapsed()" [class.px-2]="sidebarCollapsed()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 shrink-0"
+          aria-hidden="true">
+          <path
+            d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z" />
+        </svg>
+        @if (!sidebarCollapsed()) { เพิ่ม AN ใหม่ }
+      </button>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 overflow-y-auto py-2" [class.px-3]="!sidebarCollapsed()" [class.px-2]="sidebarCollapsed()"
+      aria-label="รายการ AN">
+      @for (rec of records(); track rec.id) {
+      <button type="button" (click)="selectRecord(rec.id)" [title]="sidebarCollapsed() ? 'AN ' + rec.an : ''"
+        class="w-full rounded-lg py-2 text-sm truncate transition-colors mb-0.5 hover:bg-gray-600 dark:hover:bg-gray-800"
+        [class.px-3]="!sidebarCollapsed()" [class.text-left]="!sidebarCollapsed()"
+        [class.text-center]="sidebarCollapsed()" [class.text-xs]="sidebarCollapsed()"
+        [class.font-mono]="sidebarCollapsed()" [class.bg-gray-600]="rec.id === activeId()"
+        [class.text-white]="rec.id === activeId()" [class.text-gray-400]="rec.id !== activeId()"
+        [attr.aria-current]="rec.id === activeId() ? 'page' : null">
+        @if (sidebarCollapsed()) {
+        {{ rec.an.slice(-4) }}
+        } @else {
+        AN {{ rec.an }}
+        }
+      </button>
+      }
+      @if (records().length === 0 && !sidebarCollapsed()) {
+      <p class="text-xs text-gray-600 px-3 py-2">ยังไม่มีรายการ</p>
+      }
+    </nav>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────────────── -->
+  <div class="flex flex-col flex-1 min-w-0 bg-white dark:bg-gray-800" style="height: 100vh;">
+    <!-- Mobile top bar -->
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700
+                bg-white dark:bg-gray-800 lg:hidden shrink-0">
+      <button type="button" (click)="sidebarOpen.set(true)" aria-label="เปิดเมนู" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-400
+               hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-5 h-5"
+          aria-hidden="true">
+          <path fill-rule="evenodd"
+            d="M2 3.75A.75.75 0 0 1 2.75 3h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 3.75Zm0 4A.75.75 0 0 1 2.75 7h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 7.75Zm0 4a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+      <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+        @if (activeAN()) { AN {{ activeAN() }} } @else { IPD Summary }
+      </span>
+    </div>
+
+    <!-- ── AN Phase ────────────────────────────────────────────────────── -->
+    @if (isTopicPhase()) {
+    <div class="flex flex-col items-center justify-center flex-1 gap-4 px-4 text-center">
+      <img ngSrc="images/logomoph.png" width="72" height="72" alt="" priority />
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+        IPD Discharge Summary
+        <p class="text-sm text-slate-400 mb-4">Discharge summary and ICD coding suggestion with DRG finding</p>
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">กรอก AN เพื่อเริ่มต้นบันทึก</p>
+      <div class="w-full max-w-sm flex gap-2">
+        <input type="text" id="an-input" [ngModel]="anInput()" (ngModelChange)="anInput.set($event)"
+          (keydown)="onAnKeydown($event)" placeholder="AN 1234567" 
+          class="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm
+                   outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-white
+                   placeholder-gray-400 dark:placeholder-gray-500
+                   focus:ring-2 focus:ring-green-900 focus:border-transparent" aria-label="Admission Number" />
+        <button type="button" (click)="onSetAN()" [disabled]="!anInput().trim()" class="flex gap-1 shrink-0 px-5 py-3 rounded-xl bg-green-700 text-white text-sm font-semibold
+                   transition-all disabled:opacity-40 enabled:hover:bg-green-800
+                   focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2">
+          <pk-icon iconSet="google" name="save" [size]="20"></pk-icon>บันทึก
+        </button>
+      </div>
+    </div>
+    }
+
+    <!-- ── Form Phase ──────────────────────────────────────────────────── -->
+    @if (!isTopicPhase()) {
+    <pk-tabs [customStyle]="{ 'background-color': 'black' }">
+      <pk-tab [active]="activeTab() === 'patient'">
+        <pk-tab-title (click)="activeTab.set('patient')">ข้อมูลผู้ป่วย</pk-tab-title>
+        <pk-tab-body [customClass]="'dark:bg-gray-900'">
+          <div class="overflow-auto bg-white dark:bg-gray-900" style="max-height: 92vh;">
+            <header class="flex items-center justify-between px-6 py-3 border-b border-gray-100
+                     dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0">
+              <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">AN {{ activeAN() }}</span>
+              <button type="button" form="ipd-form" [disabled]="true || isLoading()" (click)="onSubmit()" class="px-5 py-2 rounded-xl bg-green-700 text-white text-sm font-semibold
+                 transition-all disabled:opacity-40 enabled:hover:bg-green-800
+                 focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2">
+                @if (isLoading()) { กำลังประมวลผล... } @else { กำลังอยู่ในช่วงพัฒนา... }
+                <!-- @if (isLoading()) { กำลังประมวลผล... } @else { สรุป IPD Summary ด้วย AI } -->
+              </button>
+            </header>
+
+            <form id="ipd-form" [formGroup]="form" (ngSubmit)="onSubmit()"
+              class="flex-1 overflow-y-auto px-6 py-6 space-y-8" aria-label="แบบฟอร์มข้อมูลผู้ป่วย">
+
+              <!-- ── 1. Demographics & Vital Signs ──────────────────────────── -->
+              <section aria-labelledby="sec-demo">
+                <h2 id="sec-demo" [class]="cls.section">ข้อมูลทั่วไป (Demographics &amp; Vital Signs)</h2>
+                <div class="grid grid-cols-4 gap-4 md:grid-cols-6 sm:grid-cols-6">
+                  <div>
+                    <label for="age" [class]="cls.label">อายุ (ปี)</label>
+                    <input id="age" type="number" min="0" max="124" formControlName="age" placeholder="เช่น 65"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="sex" [class]="cls.label">เพศ</label>
+                    <select id="sex" formControlName="sex" [class]="cls.input">
+                      @for (opt of sexOptions; track opt) {
+                      <option [value]="opt">{{ opt || '-- เลือก --' }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label for="weight" [class]="cls.label">น้ำหนัก (กก.)</label>
+                    <input id="weight" type="number" min="0" max="300" formControlName="weight" placeholder="เช่น 60"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="height" [class]="cls.label">ส่วนสูง (ซม.)</label>
+                    <input id="height" type="number" min="0" max="250" formControlName="height" placeholder="เช่น  165"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="sbp" [class]="cls.label">SBP</label>
+                    <input id="sbp" type="number" min="0" max="300" formControlName="sbp" placeholder="เช่น 120"
+                      [class]="cls.input" />
+                  </div>
+
+                  <div>
+                    <label for="dbp" [class]="cls.label">DBP</label>
+                    <input id="dbp" type="number" min="0" max="200" formControlName="dbp" placeholder="เช่น 80"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="rr" [class]="cls.label">RR</label>
+                    <input id="rr" type="number" min="0" max="100" formControlName="rr" placeholder="เช่น 20"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="hr" [class]="cls.label">HR</label>
+                    <input id="hr" type="number" min="0" max="200" formControlName="hr" placeholder="เช่น 80"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="temp" [class]="cls.label">Temp (°C)</label>
+                    <input id="temp" type="number" min="0" max="43" formControlName="temp" placeholder="เช่น 37.5"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="coma" [class]="cls.label">Coma (0-15)</label>
+                    <input id="coma" type="number" min="0" max="15" formControlName="coma" placeholder="เช่น 15"
+                      [class]="cls.input" />
+                  </div>
+
+                  <div>
+                    <label for="los" [class]="cls.label">จำนวนวันนอน</label>
+                    <input id="los" type="number" min="0" formControlName="los" placeholder="เช่น 5"
+                      [class]="cls.input" />
+                  </div>
+
+                  <div>
+                    <label for="dischargeStatus" [class]="cls.label">สถานะจำหน่าย</label>
+                    <select id="dischargeStatus" formControlName="dischargeStatus" [class]="cls.input">
+                      @for (opt of dischargeStatusOptions; track opt) {
+                      <option [value]="opt">{{ opt || '-- เลือก --' }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 2. Clinical History ────────────────────────────────────── -->
+              <section aria-labelledby="sec-clinical">
+                <h2 id="sec-clinical" [class]="cls.section">ประวัติคลินิก (Clinical History)</h2>
+                <div class="grid grid-cols-1 gap-4 xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2">
+                  <div>
+                    <label for="cc" [class]="cls.label">
+                      CC — Chief Complaint
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(อาการสำคัญ)</span>
+                    </label>
+                    <textarea id="cc" formControlName="cc" rows="5" placeholder="เช่น หายใจหอบเหนื่อย มา 2 วัน"
+                      [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="pi" [class]="cls.label">
+                      PI — Present Illness
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1"></span>
+                    </label>
+                    <textarea id="pi" formControlName="pi" rows="5" placeholder="ประวัติการเจ็บป่วยปัจจุบัน..."
+                      [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="pmh" [class]="cls.label">
+                      PMH — Past Medical History
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(โรคประจำตัว /
+                        ประวัติผ่าตัด)</span>
+                    </label>
+                    <textarea id="pmh" formControlName="pmh" rows="5"
+                      placeholder="เช่น DM, HT, CKD, ผ่าตัด appendix ปี 2562" [class]="cls.textarea"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 3. Medical Notes ───────────────────────────────────────── -->
+              <section aria-labelledby="sec-notes">
+                <h2 id="sec-notes" [class]="cls.section">บันทึกทางการแพทย์ (Medical Notes)</h2>
+                <div class="grid grid-cols-1 gap-4 xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2">
+                  <div>
+                    <label for="progressNotes" [class]="cls.label">
+                      Doctor Progress Notes
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(สรุปอาการรายวัน)</span>
+                    </label>
+                    <textarea id="progressNotes" formControlName="progressNotes" rows="5"
+                      placeholder="Day 1: ... Day 2: ..." [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="nurseNotes" [class]="cls.label">
+                      Nurse Notes
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(เหตุการณ์สำคัญระหว่างนอน)</span>
+                    </label>
+                    <textarea id="nurseNotes" formControlName="nurseNotes" rows="5"
+                      placeholder="เช่น อาการแพ้ยา, พลัดตกหกล้ม..." [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="consultNotes" [class]="cls.label">
+                      Consult Notes
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(ความเห็นจากแพทย์เฉพาะทาง)</span>
+                    </label>
+                    <textarea id="consultNotes" formControlName="consultNotes" rows="5"
+                      placeholder="เช่น Cardiology consult: ..." [class]="cls.textarea"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 4. Examination Results ─────────────────────────────────── -->
+              <section aria-labelledby="sec-results">
+                <h2 id="sec-results" [class]="cls.section">ผลการตรวจ (Examination Results)</h2>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-2 sm:grid-cols-1">
+                  <div>
+                    <label for="labResults" [class]="cls.label">
+                      Lab Results
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(เน้นค่า Abnormal)</span>
+                    </label>
+                    <textarea id="labResults" formControlName="labResults" rows="5"
+                      placeholder="เช่น Cr 3.2 (H), Trop-T +, CBC: Hb 7.5 (L)..." [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="imagingReports" [class]="cls.label">
+                      Imaging &amp; Pathology Reports
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(X-ray, CT, MRI, Patho — ส่งเฉพาะ
+                        Impression)</span>
+                    </label>
+                    <textarea id="imagingReports" formControlName="imagingReports" rows="5"
+                      placeholder="CXR: cardiomegaly, bilateral pleural effusion..." [class]="cls.textarea"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 5. Procedures ──────────────────────────────────────────── -->
+              <section aria-labelledby="sec-proc">
+                <h2 id="sec-proc" [class]="cls.section">การผ่าตัด / หัตถการ (Procedures)</h2>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-2 sm:grid-cols-1">
+                  <div>
+                    <label for="operativeNotes" [class]="cls.label">
+                      Operative Notes
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(ชื่อการผ่าตัด, อวัยวะ,
+                        วิธีการ)</span>
+                    </label>
+                    <textarea id="operativeNotes" formControlName="operativeNotes" rows="5"
+                      placeholder="เช่น Laparoscopic cholecystectomy, GB with stones removed..."
+                      [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="procedures" [class]="cls.label">
+                      Procedures (หัตถการที่เตียง)
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(ใส่ Tube, CPR,
+                        เจาะปอด/หลัง)</span>
+                    </label>
+                    <textarea id="procedures" formControlName="procedures" rows="5"
+                      placeholder="เช่น ICD insertion, thoracocentesis..." [class]="cls.textarea"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 6. Medications ─────────────────────────────────────────── -->
+              <section aria-labelledby="sec-meds">
+                <h2 id="sec-meds" [class]="cls.section">ยา (Medications)</h2>
+                <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+                  <div>
+                    <label for="inHospitalMeds" [class]="cls.label">
+                      In-hospital Medications
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(ยาฉีด, ยาฆ่าเชื้อ,
+                        ยาความดันระหว่างนอน)</span>
+                    </label>
+                    <textarea id="inHospitalMeds" formControlName="inHospitalMeds" rows="5"
+                      placeholder="เช่น Ceftriaxone 2g IV OD, Dopamine 5 mcg/kg/min..."
+                      [class]="cls.textarea"></textarea>
+                  </div>
+                  <div>
+                    <label for="dischargeMeds" [class]="cls.label">
+                      Discharge Medications
+                      <span class="font-normal text-gray-400 dark:text-gray-500 ml-1">(ยาที่ให้กลับบ้าน)</span>
+                    </label>
+                    <textarea id="dischargeMeds" formControlName="dischargeMeds" rows="5"
+                      placeholder="เช่น Furosemide 40mg OD, Enalapril 5mg OD..." [class]="cls.textarea"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── 7. Existing ICD ──────────────────────────── -->
+              <section aria-labelledby="sec-icd">
+                <h2 id="sec-icd" [class]="cls.section">รหัส ICD ที่ให้ไว้</h2>
+                <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+                  <div>
+                    <label for="pdx" [class]="cls.label">PDX (ICD-10)</label>
+                    <input class="uppercase" id="pdx" type="text" formControlName="pdx" placeholder="Priciple dx"
+                      [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="sdx" [class]="cls.label">SDX (ICD-10)</label>
+                    <input class="uppercase" id="sdx" type="text" formControlName="sdx"
+                      placeholder="Separate by comma (e.g. I10, E119)" [class]="cls.input" />
+                  </div>
+                  <div>
+                    <label for="procedure" [class]="cls.label">Procedure</label>
+                    <input class="uppercase" id="procedure" type="text" formControlName="procedure"
+                      placeholder="Separate by comma (e.g. 001, 002)" [class]="cls.input" />
+                  </div>
+                </div>
+              </section>
+
+              <!-- bottom padding -->
+              <div class="h-4"></div>
+            </form>
+          </div>
+        </pk-tab-body>
+      </pk-tab>
+
+      <pk-tab [disabled]="!aiResponse()" [active]="activeTab() === 'ai-result'">
+        <pk-tab-title (click)="activeTab.set('ai-result')">AI Response</pk-tab-title>
+        <pk-tab-body [customClass]="'dark:bg-gray-700'">
+          <div class="p-6 m-4 bg-white dark:bg-gray-800 rounded-md shadow overflow-auto" style="max-height: 80vh;">
+            <div>
+              <h3 class="font-semibold text-lg mb-2 text-blue-700 dark:text-blue-400">
+                Prompt for AI
+              </h3>
+              <div
+                class="px-4 p-2 bg-white dark:bg-slate-700 rounded-md shadow border border-gray-300 dark:border-gray-600">
+                <span class="text-shadow-slate-800 dark:text-white">
+                  system prompt ({{ aiPrompt().system.length | number }} chars)
+                </span>
+                <div
+                  class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 dark:font-light p-4 rounded-md overflow-auto mt-1">
+                  {{ aiPrompt().system }}
+                </div>
+              </div>
+
+              <div
+                class="px-4 p-2 mt-2 bg-white dark:bg-slate-700 rounded-md shadow border border-gray-300 dark:border-gray-600">
+                <span class="text-shadow-slate-800 dark:text-white">
+                  user prompt ({{ aiPrompt().user.length | number }} chars)
+                </span>
+                <div
+                  class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 dark:font-light p-4 rounded-md overflow-auto mt-1">
+                  {{ aiPrompt().user }}
+                </div>
+              </div>
+            </div>
+
+            <div class="my-6">
+              @if (!aiResponse()) {
+              <p class="text-gray-500 dark:text-gray-400">ยังไม่มีผลลัพธ์จาก AI กรุณากด "สรุปด้วย AI" เพื่อประมวลผล</p>
+              }
+              @if(aiResponse() && aiResponse()?.choices && aiResponse()?.choices.length > 0) {
+              @for (choice of aiResponse()?.choices; track choice) {
+              <h3 class="font-semibold text-lg mb-2 text-blue-700 dark:text-blue-400">
+                AI Response
+              </h3>
+              <div
+                class="p-4 bg-white dark:bg-slate-700 text-black dark:text-gray-100 rounded-md shadow border border-gray-300 dark:border-gray-600">
+                <h3 class="font-semibold text-lg mb-2">
+                  index: {{ choice?.index }}
+                </h3>
+                <pre
+                  class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto">{{ choice?.message?.content | json }}</pre>
+
+                @if (choice?.message?.content.discharge_summary) {
+                <div class="p-1 mt-4">
+                  <span class="font-bold text-orange-600 dark:text-yellow-500">
+                    Discharge Summary ({{ choice?.message?.content.discharge_summary.length | number }} chars)
+                  </span>
+                  <div
+                    class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    {{ choice?.message?.content.discharge_summary }}
+                  </div>
+                </div>
+                }
+
+                <div class="p-1">
+                  <span class="font-bold text-orange-600 dark:text-yellow-500">
+                    Principal Diagnosis
+                  </span>
+                  <div
+                    class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    {{ choice?.message?.content.principal_diagnosis }}
+                    <a class="text-green-700 font-bold mx-2"
+                      href="https://icd.who.int/browse10/2016/en#/{{ choice?.message?.content.icd_10_pdx }}"
+                      target="_blank">
+                      {{ choice?.message?.content.icd_10_pdx }}
+                    </a>
+                  </div>
+                </div>
+                <div class="p-1">
+                  <span class="font-bold text-orange-600 dark:text-yellow-500">Secondary Diagnosis</span>
+                  <div
+                    class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    @if (choice?.message?.content?.secondary_diagnosis) {
+                    {{ choice?.message?.content?.secondary_diagnosis.join(', ') }}
+                    }
+                  </div>
+                </div>
+                <div class="p-1">
+                  <span class="font-bold text-orange-600 dark:text-yellow-500">Procedure</span>
+                  <div
+                    class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    {{ choice?.message?.content.procedure }}
+                  </div>
+                </div>
+
+                <div class="p-1 pt-4">
+                  <span class="font-bold text-purple-600 dark:text-purple-400">Raw data from AI API</span>
+                  <div
+                    class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    <pre>{{ aiResponse() | json }}</pre>
+                  </div>
+                </div>
+              </div>
+
+              }
+              }
+            </div>
+          </div>
+        </pk-tab-body>
+      </pk-tab>
+
+    </pk-tabs>
+    }
+  </div>
+</div>

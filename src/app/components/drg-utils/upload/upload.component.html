@@ -1,0 +1,270 @@
+<nav class="pk-breadcrumb">
+  <ol class="pk-breadcrumb-list">
+    <li class="pk-breadcrumb-item">Home</li>
+    <li class="pk-breadcrumb-item pk-breadcrumb-item--active">Data Upload</li>
+  </ol>
+</nav>
+
+<div class="pk-card m-4 pk-font-bai-jamjuree">
+  <div class="pk-card-header font-bold text-sky-600 flex items-center gap-2">
+    <pk-icon name="upload" [size]="22" />
+    <span class="text-2xl">Upload csv file</span>
+  </div>
+  <div class="pk-card-body">
+    <p class="text-gray-700 text-sm">แฟ้มข้อมูลผู้ป่วยในจากโปรแกรม DRG Index</p>
+
+    <div class="flex items-center gap-4 mt-2">
+      <label for="file-upload" class="cursor-pointer">
+        <input id="file-upload" type="file" accept=".csv" (change)="fileUpload($event)" [disabled]="loading()"
+          class="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-500" />
+      </label>
+      @if (loading()) {
+      <span class="inline-block w-5 h-5 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></span>
+      }
+      @if (dataList.length) {
+      <strong class="text-blue-600">{{ dataList.length | number }} recs.</strong>
+      }
+    </div>
+
+    <!-- Summary Table -->
+    <div class="mt-4 mb-3 overflow-x-auto p-2 border border-gray-200 rounded">
+      <div class="flex items-center justify-between mb-2">
+        <strong>สรุป DRG จาก csv file</strong>
+        @if (sumMonthly.length) {
+        <button type="button" (click)="onExportSummary()" [disabled]="loading()"
+          class="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
+          ส่งสรุปออก excel
+        </button>
+        }
+      </div>
+
+      <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border border-gray-300 px-3 py-1">Month</th>
+            <th class="border border-gray-300 px-3 py-1">ราย</th>
+            <th class="border border-gray-300 px-3 py-1">rw0</th>
+            <th class="border border-gray-300 px-3 py-1">rw</th>
+            <th class="border border-gray-300 px-3 py-1">adjrw</th>
+            <th class="border border-gray-300 px-3 py-1">cmi</th>
+            <th class="border border-gray-300 px-3 py-1">refer</th>
+            <th class="border border-gray-300 px-3 py-1">cmi</th>
+            <th class="border border-gray-300 px-3 py-1">dead</th>
+            <th class="border border-gray-300 px-3 py-1">cmi</th>
+            <th class="border border-gray-300 px-3 py-1">ส่งกระทรวง</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of sumMonthly; track item.monthly) {
+          <tr>
+            <td class="border border-gray-300 px-2 py-1">{{ item.txtMonth }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cases | number }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+              (click)="showList('rw0', item.monthly)">{{ item.rw0 | number }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.rw | number:'.1-1' }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.adjrw | number:'.1-1' }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cmi | number:'.1-4' }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+              (click)="showList('refer', item.monthly)">{{ item.refer | number }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.referCMI | number:'.1-4' }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+              (click)="showList('dead', item.monthly)">{{ item.dead | number }}</td>
+            <td class="border border-gray-300 px-2 py-1 text-right">{{ item.deadCMI | number:'.1-4' }}</td>
+            <td class="border border-gray-300 px-2 py-1 whitespace-nowrap">
+              <button type="button" (click)="onExport(item.monthly, item.monthly)" [disabled]="loading()"
+                class="px-2 py-0.5 text-xs bg-blue-100 rounded hover:bg-blue-200 mr-1">📥 Export</button>
+              <button type="button" (click)="upload(item)" [disabled]="loading()" class="px-2 py-0.5 text-xs rounded"
+                [class]="item.sent ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
+                📤 {{ item.sent ? 'ส่งแล้ว' : 'Click เพื่อส่ง' }}
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detail Table -->
+    <div class="overflow-x-auto p-2 border border-gray-200 rounded">
+      <div class="flex items-center justify-between mb-2">
+        <strong>ทะเบียนรายชื่อจาก csv file</strong>
+        @if (sumMonthly.length) {
+        <button type="button" (click)="onExportAll()" [disabled]="loading()"
+          class="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
+          ส่งทั้งหมดออก excel
+        </button>
+        }
+      </div>
+      <div class="flex justify-end mb-2">
+        <input type="text" [(ngModel)]="searchText" (input)="setPageDetail(1)"
+          placeholder="Search... hn, an, pdx, sdx, drg"
+          class="border border-gray-300 rounded px-2 py-1 text-sm w-64 focus:outline-none focus:border-blue-500"
+          aria-label="ค้นหา">
+      </div>
+      <div class="overflow-auto">
+        <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="border px-2 py-1">HCode</th>
+              <th class="border px-2 py-1">AN</th>
+              <th class="border px-2 py-1">HN</th>
+              <th class="border px-2 py-1">DateADM</th>
+              <th class="border px-2 py-1">DateDSC</th>
+              <th class="border px-2 py-1">ActLos</th>
+              <th class="border px-2 py-1">WtLos</th>
+              <th class="border px-2 py-1">AGE</th>
+              <th class="border px-2 py-1">PDX</th>
+              <th class="border px-2 py-1">SDX</th>
+              <th class="border px-2 py-1">DRG</th>
+              <th class="border px-2 py-1">RW</th>
+              <th class="border px-2 py-1">AdjRW</th>
+              <th class="border px-2 py-1"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of paginatedDetail; track row.AN) {
+            <tr>
+              <td class="border px-2 py-1">{{ row.HCODE }}</td>
+              <td class="border px-2 py-1">{{ row.AN }}</td>
+              <td class="border px-2 py-1">{{ row.HN }}</td>
+              <td class="border px-2 py-1 whitespace-nowrap">{{ row.DATEADM | pkDate:'d mm yy':'abbr':'th':'BE' }}</td>
+              <td class="border px-2 py-1 whitespace-nowrap">{{ row.DATEDSC | pkDate:'d mm yy':'abbr':'th':'BE' }}</td>
+              <td class="border px-2 py-1 text-right" [class]="row.ACTLOS > row.wtlos ? 'bg-red-50 text-red-600' : ''">
+                {{
+                row.ACTLOS | number }}</td>
+              <td class="border px-2 py-1 text-right">{{ row.WTLOS | number }}</td>
+              <td class="border px-2 py-1">{{ row.AGE }}</td>
+              <td class="border px-2 py-1 font-mono">{{ row.PDX }}</td>
+              <td class="border px-2 py-1 text-left max-w-xs truncate">{{ row.SDX }}</td>
+              <td class="border px-2 py-1"
+                [class]="row.DRG && row.DRG.substring(0,2) !== '28' && +row.ADJRW > 0 ? 'text-green-700' : 'text-gray-400'">
+                {{ row.DRG }}</td>
+              <td class="border px-2 py-1 text-right"
+                [class]="row.DRG && row.DRG.substring(0,2) !== '28' && +row.ADJRW > 0 ? '' : 'text-gray-400'">{{ row.RW
+                |
+                number:'.1-4' }}</td>
+              <td class="border px-2 py-1 text-right"
+                [class]="row.DRG && row.DRG.substring(0,2) !== '28' && +row.ADJRW > 0 ? '' : 'text-gray-400'">{{
+                row.ADJRW
+                | number:'.1-4' }}</td>
+              <td class="border px-2 py-1">
+                <button type="button" (click)="showDetail(row)" class="text-blue-500 hover:text-blue-700"
+                  aria-label="ดูรายละเอียด">
+                  <pk-icon name="folder-open" [size]="16" />
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (dataList.length > 0) {
+      <div class="px-2 w-full flex justify-between items-center mt-2 bg-slate-100 py-1">
+        <div class="text-slate-500 text-sm">
+          ต่อหน้า
+          <select [(ngModel)]="itemsPerPageDetail" (change)="setPageDetail(1)"
+            class="text-xs m-1 mr-3 border border-gray-300 rounded px-1 focus:outline-none">
+            @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+            }
+          </select>
+          แสดง {{ paginatedDetail.length }} จาก {{ filteredDetail.length | number }} รายการ
+        </div>
+        <div class="text-slate-500 text-sm">
+          <button type="button" class="text-lg cursor-pointer mr-2" (click)="setPageDetail(currentPageDetail - 1)"
+            aria-label="หน้าก่อน">⏴</button>
+          หน้า {{ currentPageDetail }} / {{ totalPagesDetail }}
+          <button type="button" class="text-lg cursor-pointer ml-2" (click)="setPageDetail(currentPageDetail + 1)"
+            aria-label="หน้าถัดไป">⏵</button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<pk-modal [openModal]="modalDetail()" [size]="'lg'" [closeAny]="true" [closeMarker]="true"
+  (onClose)="modalDetail.set(false)">
+  <pk-modal-header>
+    <h3 class="modal-title text-slate-600">รายละเอียดผู้ป่วยใน HN: {{ currentRow.HN }} AN: {{ currentRow.AN }}</h3>
+  </pk-modal-header>
+  <pk-modal-body style="margin-bottom: 10px;">
+    @if (dataList.length) {
+    <table style="width: 99%;" class="text-sm">
+      @for (fld of structure; track fld) {
+      <tr>
+        <td class="text-right pr-2 text-gray-500 whitespace-nowrap w-40">{{ fld }}</td>
+        @if (!fld.includes('DATE')) {
+        <td class="whitespace-nowrap">{{ currentRow[fld] }}</td>
+        } @else {
+        <td class="whitespace-nowrap">{{ currentRow[fld] | pkDate:'D MMMM YYYY':'full':'th':'BE' }}</td>
+        }
+      </tr>
+      }
+    </table>
+    }
+  </pk-modal-body>
+  <pk-modal-footer>
+    <button type="button" class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
+      (click)="modalDetail.set(false)">ปิด</button>
+  </pk-modal-footer>
+</pk-modal>
+
+<!-- Modal List -->
+<pk-modal [openModal]="modalList()" [size]="'xl'" [closeAny]="true" [closeMarker]="true"
+  (onClose)="modalList.set(false)">
+  <pk-modal-header>
+    <h3 class="modal-title">{{ showTitle }}</h3>
+  </pk-modal-header>
+  <pk-modal-body style="margin-bottom: 10px;">
+    @if (dataShow.length) {
+    <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="border px-2 py-1">HCode</th>
+          <th class="border px-2 py-1">AN</th>
+          <th class="border px-2 py-1">HN</th>
+          <th class="border px-2 py-1">DateADM</th>
+          <th class="border px-2 py-1">DateDSC</th>
+          <th class="border px-2 py-1">ActLos</th>
+          <th class="border px-2 py-1">AGE</th>
+          <th class="border px-2 py-1">PDX</th>
+          <th class="border px-2 py-1">DRG</th>
+          <th class="border px-2 py-1">RW</th>
+          <th class="border px-2 py-1">AdjRW</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of paginatedModal; track row.AN) {
+        <tr>
+          <td class="border px-2 py-1">{{ row.HCODE }}</td>
+          <td class="border px-2 py-1">{{ row.AN }}</td>
+          <td class="border px-2 py-1">{{ row.HN }}</td>
+          <td class="border px-2 py-1 whitespace-nowrap">{{ row.DATEADM | pkDate:'d mm yy':'abbr':'th':'BE' }}</td>
+          <td class="border px-2 py-1 whitespace-nowrap">{{ row.DATEDSC | pkDate:'d mm yy':'abbr':'th':'BE' }}</td>
+          <td class="border px-2 py-1 text-right">{{ row.ACTLOS | number }}</td>
+          <td class="border px-2 py-1">{{ row.AGE }}</td>
+          <td class="border px-2 py-1 font-mono">{{ row.PDX }}</td>
+          <td class="border px-2 py-1"
+            [class]="row.DRG && row.DRG.substring(0,2) !== '28' && +row.ADJRW > 0 ? 'text-green-700' : 'text-gray-400'">
+            {{ row.DRG }}</td>
+          <td class="border px-2 py-1 text-right">{{ row.RW | number:'.1-4' }}</td>
+          <td class="border px-2 py-1 text-right">{{ row.ADJRW | number:'.1-4' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </pk-modal-body>
+  <pk-modal-footer>
+    @if (dataShow.length) {
+    <button type="button" (click)="onExport(currentShow, dataShow[0].monthly)" [disabled]="loading()"
+      class="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 mr-2">
+      📥 ส่งออกข้อมูล
+    </button>
+    }
+    <button type="button" (click)="modalList.set(false)"
+      class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400">ปิด</button>
+  </pk-modal-footer>
+</pk-modal>

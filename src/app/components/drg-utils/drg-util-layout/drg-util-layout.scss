@@ -1,0 +1,11 @@
+.drg-util-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.drg-util-content {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}

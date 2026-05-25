@@ -1,0 +1,283 @@
+<!-- <div class="pk-breadcrumb m-1 text-slate-500">
+  Home >
+  <span class="text-slate-800" (dblclick)="toggleLogin()">DRG Seeker</span>
+</div> -->
+<nav class="pk-breadcrumb">
+  <ol class="pk-breadcrumb-list">
+    <li class="pk-breadcrumb-item">Home</li>
+    <li class="pk-breadcrumb-item pk-breadcrumb-item--active cursor-pointer" (itemDblClick)="toggleLogin()">
+      DRG Seeker
+    </li>
+  </ol>
+</nav>
+
+<div class="pk-card m-2 sm:m-4 pk-font-bai-jamjuree">
+  <div class="pk-card-header flex flex-wrap justify-between font-bold text-sky-500 items-center gap-2">
+    <div class="flex items-center gap-2 min-w-0">
+      <pk-icon name="upload" [size]="22" />
+      <span class="text-xl sm:text-2xl truncate">ระบบ Prediction DRG (DRG Seeker)</span>
+    </div>
+    <span class="text-red-500 text-xs">
+      (<a href="https://www.tcmc.or.th/tdrg" target="_blank" rel="noopener noreferrer">ที่มา: สรท.</a>)
+    </span>
+  </div>
+  <div class="pk-card-body">
+    @if (onLogin()) {
+    <div class="p-10 border border-slate-300 shadow-md rounded-lg m-2 max-w-sm mx-auto text-center">
+      <h3 class="text-blue-600 font-semibold mb-3">Login เข้าสู่ระบบ DRG</h3>
+      <div class="flex flex-col gap-2">
+        <input class="border border-slate-400 px-2 py-1 rounded" type="text" [(ngModel)]="username"
+          placeholder="Username" aria-label="Username">
+        <input class="border border-slate-400 px-2 py-1 rounded" type="password" [(ngModel)]="password"
+          placeholder="Password" aria-label="Password">
+      </div>
+      <div class="flex gap-2 mt-3 justify-center">
+        <button type="button" (click)="login()" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">🔑
+          Login</button>
+        <button type="button" (click)="onLogin.set(false)" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">✘
+          ปิด</button>
+      </div>
+    </div>
+    }
+
+    @if (!onLogin()) {
+    @if (ipdData && ipdData.an) {
+    <div class="drg-data p-2 rounded-md shadow-md mb-1 text-sm flex flex-wrap gap-x-4 gap-y-1">
+      <span class="inf">Admit:
+        <strong>{{ ipdData.dateadm | pkDate:'d mm yyyy':'full':'th':'BE' }} {{
+          timeOnly(ipdData.timeadm) }}</strong>
+      </span>
+      @if (ipdData.datedsc) {
+      <span class="inf">D/C: <strong>{{ ipdData.datedsc | pkDate:'d mm yyyy':'full':'th':'BE' }}</strong></span>
+      <span class="inf">Los: <strong>{{ ipdData.los || 0 | number }}</strong></span>
+      }
+      <span class="inf">สิทธิ์: <strong>{{ ipdData.ins_class1 || ipdData.inscl }}</strong></span>
+
+      @if (ipdData.drg) {
+      <span class="inf">DRG:
+        <strong>{{ ipdData.drg }}</strong> RW: <strong>{{ ipdData.rw }}</strong> AdjRW: <strong>{{
+          ipdData.adjrw }}</strong></span>
+      }
+    </div>
+    }
+
+    <div class="section flex flex-wrap gap-x-3 gap-y-2 mb-3">
+      <div class="formControl">
+        <label>HCode</label>
+        <input name="hcode" [(ngModel)]="hcode" [disabled]="userInfo()?.hcode" style="width: 120px;"
+          placeholder="hcode">
+      </div>
+      @if (userInfo()?.hcode) {
+      <div class="formControl">
+        <label>ปี</label>
+        <input name="yearly" [(ngModel)]="yearly" placeholder="ปี" (change)="checkAN()" style="width: 70px;">
+      </div>
+      <div class="formControl">
+        <label>AN</label>
+        <input name="an" [(ngModel)]="an" style="width: 110px;" placeholder="AN" (change)="checkAN()">
+      </div>
+      }
+      <div class="formControl">
+        <label>เพศ</label>
+        <div class="radio-group">
+          <label><input type="radio" name="sex" [(ngModel)]="ipdData.sex" [value]="1"> ชาย</label>
+          <label><input type="radio" name="sex" [(ngModel)]="ipdData.sex" [value]="2"> หญิง</label>
+        </div>
+      </div>
+      <div class="formControl">
+        <label>อายุ (ปี)</label>
+        <input type="number" name="age" [(ngModel)]="ipdData.age" placeholder="ปี" style="width: 70px;">
+      </div>
+      <div class="formControl">
+        <label>อายุ (วัน)</label>
+        <input type="number" name="age_day" [(ngModel)]="ipdData.age_day" placeholder="วัน" style="width: 70px;">
+      </div>
+      <div class="formControl">
+        <label>น้ำหนัก (กก.)</label>
+        <input type="number" name="weight" [(ngModel)]="ipdData.weight" style="width: 80px;">
+      </div>
+      <div class="formControl">
+        <label>LOS (วัน)</label>
+        <input type="number" name="los_day" [(ngModel)]="ipdData.los_day" placeholder="วัน" (change)="calCarry()"
+          style="width: 70px;">
+      </div>
+      <div class="formControl">
+        <label>LOS (ชม.)</label>
+        <input type="number" name="los_hour" [(ngModel)]="ipdData.los_hour" placeholder="ชม." style="width: 60px;">
+      </div>
+      <div class="formControl">
+        <label>D/C Status</label>
+        <select name="ipdResult" [(ngModel)]="ipdData.ipdResult" style="width: min(280px, 100%)">
+          @for (item of ipdResultList(); track item) {
+          <option [value]="item.status + '' + item.type">
+            {{ item.status }}{{ item.type }}. {{ item.statname }} - {{ item.typename }}
+          </option>
+          }
+        </select>
+      </div>
+      <div class="formControl">
+        <label>ค่ารักษา (บาท)</label>
+        <input type="number" name="price" [(ngModel)]="ipdData.price" placeholder="บาท" style="width: 120px;"
+          (change)="calCarry()">
+      </div>
+    </div>
+
+    <div class="section flex flex-wrap gap-x-2 gap-y-2 mb-3">
+      <div class="formControl">
+        <label>PDx</label>
+        <input name="pdx" [(ngModel)]="pdx.code" placeholder="Principal Dx" (change)="checkDx(-1)" [title]="pdx.name"
+          style="width: 110px;" [class]="pdx.code && !pdx.name ? 'bg-red-100' : ''">
+      </div>
+      @for (i of seqDx; track i) {
+      @if (i === 0 || dxList[i].code !== '' || dxList[i-1].code !== '') {
+      <div class="formControl">
+        <label>SDx {{ i + 1 }}</label>
+        <input [disabled]="calculating()" [name]="'dx' + i" [(ngModel)]="dxList[i].code"
+          [placeholder]="'SDx ' + (i + 1)" style="width: 100px;" (change)="checkDx(i)" [title]="dxList[i].name"
+          [class]="dxList[i].code && !dxList[i].name ? 'bg-red-100' : ''">
+      </div>
+      }
+      }
+    </div>
+
+    <div class="section flex flex-wrap gap-x-2 gap-y-2 mb-3">
+      @for (i of seqOp; track i) {
+      @if (i === 0 || opList[i].code !== '' || opList[i-1].code !== '') {
+      <div class="formControl">
+        <label>Proc {{ i + 1 }}</label>
+        <input [disabled]="calculating()" [name]="'op' + i" [(ngModel)]="opList[i].code"
+          [placeholder]="'Proc ' + (i + 1)" style="width: 90px;" (change)="checkOP(i)" [title]="opList[i].name"
+          [class]="opList[i].code && !opList[i].name ? 'bg-red-100' : ''">
+      </div>
+      }
+      }
+    </div>
+
+    @if (pdx.code || opList[0].code) {
+    <div class="flex flex-col gap-4 mb-3">
+      <div class="w-full">
+        <table class="pk-table pk-table-sm text-sm">
+          @if (pdx.code) {
+          <tr>
+            <td class="w-16">PDX</td>
+            <td class="w-24 text-left font-mono text-amber-600 font-bold">{{ pdx.code }}</td>
+            <td class="text-left">{{ pdx.name || '** Not found' }}</td>
+          </tr>
+          }
+          @for (i of seqDx; track i) {
+          @if (dxList[i].code) {
+          <tr>
+            <td class="w-16" nowrap>SDx {{ i + 1 }}</td>
+            <td class="w-24 text-left font-mono text-amber-600 font-bold">{{ dxList[i].code }}</td>
+            <td class="text-left">{{ dxList[i].name || '** Not found' }}</td>
+          </tr>
+          }
+          }
+        </table>
+      </div>
+      @if (opList[0].code) {
+      <div class="w-full">
+        <table class="pk-table pk-table-sm text-sm">
+          @for (i of seqOp; track i) {
+          @if (opList[i].code) {
+          <tr>
+            <td class="w-16">Proc {{ i + 1 }}</td>
+            <td class="w-24 text-left font-mono text-amber-600">{{ opList[i].code }}</td>
+            <td class="text-left">{{ opList[i].name }}</td>
+          </tr>
+          }
+          }
+        </table>
+      </div>
+      }
+    </div>
+    }
+
+    <div class="section flex items-center gap-3 mt-4">
+      @if (calculating()) {
+      <span class="inline-block w-5 h-5 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></span>
+      }
+      <button type="button" [disabled]="calculating() || !pdx.code" (click)="calculate()"
+        class="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">
+        <pk-icon iconSet="google" name="search" [size]="18"></pk-icon> Calculate DRG
+      </button>
+      <button type="button" [disabled]="calculating()" (click)="resetVar('all')"
+        class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400">
+        <pk-icon iconSet="google" name="reset_focus" [size]="18"></pk-icon> Reset
+      </button>
+    </div>
+
+    @if (calculateResult()?.drg) {
+    <div class="calculate-result mt-3 p-3 border rounded-lg bg-green-50">
+      <div class="drg-result gap-x-6 gap-y-1 text-sm">
+        <span>DRG Group: <strong class="text-green-700">{{ calculateResult().drg }}</strong></span>
+        <span>DRG Name: <strong>{{ calculateResult().drgName }}</strong></span><br>
+        <span>RW0Day: <strong>{{ calculateResult().default_rw0d }}</strong></span>
+        <span>RW: <strong>{{ calculateResult().rw }}</strong></span>
+        <span>AdjRW: <strong>{{ calculateResult().adjrw }}</strong></span>
+        <span>wtLos: <strong>{{ calculateResult().wtlos }}</strong> วัน</span>
+        <span>wtLos/3: <strong>{{ calculateResult().wtlos / 3 | number:'0.2-2' }}</strong> วัน</span>
+        <span>OT: <strong>{{ calculateResult().ot }}</strong> วัน</span>
+      </div>
+
+      @if (calculateResult().errorText || calculateResult().warn) {
+      <div class="mt-2 text-sm">
+        @if (calculateResult().errorText) {
+        <span class="text-red-600">Error: {{ calculateResult().errorText }}</span>
+        }
+        @if (calculateResult().warn) {
+        <span class="text-pink-600 ml-3">Warning: {{ calculateResult().warningText }}</span>
+        }
+      </div>
+      }
+
+      @if (calculateResult().adjrw) {
+      <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-gray-700">
+        <span class="flex gap-1">
+          Base Rate:
+          <input type="number" [(ngModel)]="baseRate" name="baseRate" style="width: 90px;" (change)="calCarry()"> บาท
+        </span>
+        <span>Claim ตาม DRG:
+          <strong class="text-green-700">
+            {{ calculateResult().adjrw * baseRate | number:'0.2-2' }} บาท
+          </strong>
+        </span>
+        <span>ค่ารักษาจริง:
+          <strong class="text-green-700">
+            {{ (ipdData.price || 0) | number:'0.2-2' }} บาท
+          </strong>
+        </span>
+        <span>ส่วนต่าง:
+          <strong
+            [class]="(calculateResult().adjrw * baseRate) - ipdData.price > 0 ? 'text-green-700' : 'text-red-600'">
+            {{ (calculateResult().adjrw * baseRate) - ipdData.price | number:'0.2-2' }} บาท
+          </strong>
+        </span>
+      </div>
+      <hr class="my-2">
+      <div class="text-xs text-gray-500 flex flex-wrap gap-x-6">
+        <span class="text-amber-600 font-bold">หมายเหตุ:</span>
+        <span>adjRw(+/-):
+          <strong [class]="calculateResult().carry_rw < 0 ? 'text-red-600' : 'text-green-700'">
+            {{ calculateResult().carry_rw }} ({{ calculateResult().carry_rw * baseRate | number:'0.2-2' }} บาท)
+          </strong>
+        </span>
+        <span>Los(+/-):
+          <strong [class]="calculateResult().carry_los >= 0 ? 'text-green-700' : 'text-red-600'">
+            {{ calculateResult().carry_los }} วัน
+          </strong>
+        </span>
+      </div>
+      }
+    </div>
+    }
+
+    @if (TGrp()?.FileName) {
+    <div class="grp-src text-xs text-gray-500 mt-2">
+      <span>โปรแกรม TGrp: <strong class="text-green-700">{{ TGrp().FileName }}</strong></span>
+      <span class="ml-4">Version: <strong class="text-green-700">{{ TGrp().ProductVersion }}</strong></span>
+    </div>
+    }
+    }
+  </div>
+</div>
