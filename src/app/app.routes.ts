@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './services/guards/auth.guard';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'drg-util', pathMatch: 'full' },
   {
     path: 'login',
     loadComponent: () => import('./components/login/login').then((m) => m.Login),
@@ -19,7 +20,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./components/drg-utils/drg-util-layout/drg-util-layout').then((m) => m.DrgUtilLayout),
     children: [
-      { path: '', redirectTo: 'drg-seeker', pathMatch: 'full' },
+      { path: '', redirectTo: 'about', pathMatch: 'full' },
       {
         path: 'drg-seeker',
         loadComponent: () => import('./components/drg-utils/drg-seeker/drg-seeker.component').then((m) => m.DrgSeekerComponent),
@@ -39,7 +40,7 @@ export const routes: Routes = [
     ],
   },
   {
-    path: '',
+    path: 'ai-tools',
     canActivate: [authGuard],
     loadComponent: () => import('./components/layout/layout').then((m) => m.Layout),
     children: [
@@ -59,10 +60,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./components/cmi-api/cmi-api-layout/cmi-api-layout').then((m) => m.CmiApiLayout),
     children: [
-      { path: '', redirectTo: 'download', pathMatch: 'full' },
+      { path: '', redirectTo: 'about', pathMatch: 'full' },
       {
         path: 'download',
         loadComponent: () => import('./components/cmi-api/api-request/api-request').then((m) => m.ApiRequest),
+      },
+      {
+        path: 'about',
+        loadComponent: () => import('./components/about/about').then((m) => m.AboutComponent),
       },
     ]
   },

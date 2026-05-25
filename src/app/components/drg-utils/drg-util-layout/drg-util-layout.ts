@@ -55,8 +55,8 @@ export class DrgUtilLayout implements OnInit {
     {
       heading: 'AI Tools',
       items: [
-        { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ipd-summary' },
-        { key: 'on-demand-prompt', label: 'AI Prompt', icon: 'terminal', route: '/drg-prompt' },
+        { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ai-tools/ipd-summary' },
+        { key: 'on-demand-prompt', label: 'AI Prompt', icon: 'terminal', route: '/ai-tools/drg-prompt' },
       ],
     },
     {

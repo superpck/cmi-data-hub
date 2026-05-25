@@ -7,6 +7,7 @@
     <span class="text-sm text-gray-400">— ค้นหาข้อมูล DRG</span>
   </div> -->
 
+  @if (isBeta){
   <!-- ── Split pane ────────────────────────────────────────── -->
   <pk-split [initialSize]="20" [minSize]="20" [gutterSize]="2" direction="horizontal" class="split-body">
 
@@ -20,7 +21,10 @@
           <div class="flex items-center justify-between gap-2 px-4 py-3 shadow-md bg-white shrink-0">
             <div class="flex items-center gap-2">
               <img src="images/logomoph.png" width="32" height="32" alt="MOPH Logo" />
-              <h1 class="text-lg font-semibold text-sky-600">CMI Data Hub</h1>
+              <h1 class="text-lg font-semibold text-sky-600" pkTooltip="CMI Data Hub API, กบรส. สป."
+                pkTooltipPosition="right">
+                CMI Data Hub
+              </h1>
             </div>
             <div>
               <pk-icon iconSet="google" name="home" [size]="18" class="text-gray-400 cursor-pointer hover:text-gray-600"
@@ -271,8 +275,7 @@
               } @else {
               <div class="flex flex-col items-center justify-center h-full min-h-100 gap-3 text-gray-300 select-none">
                 <pk-icon iconSet="google" name="description" [size]="56" />
-                <p class="text-sm text-gray-400">ไม่มีข้อมูลแสดงผล <span
-                    routerLink="/drg-util/drg-seeker">ลอง</span>ปรับเงื่อนไขการค้นหาแล้วกด
+                <p class="text-sm text-gray-400">ไม่มีข้อมูลแสดงผล ลองปรับเงื่อนไขการค้นหาแล้วกด
                   <strong class="text-sky-500">ค้นหา</strong> ใหม่อีกครั้ง
                 </p>
               </div>
@@ -284,4 +287,14 @@
     </pk-split-panel>
 
   </pk-split>
+  } @else {
+
+  <div class="flex flex-col items-center text-2xl justify-center h-full gap-5 text-gray-400 select-none">
+    Relese วันที่ 27 พฤษภาคม 2569
+    <p class="text-sm text-gray-500 cursor-pointer" routerLink="/drg-util/about">
+      Back
+    </p>
+  </div>
+
+  }
 </div>

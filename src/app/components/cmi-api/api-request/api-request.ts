@@ -143,6 +143,7 @@ export class ApiRequest {
 
   activeTab = signal('file');
   dataList = signal<any[]>([]);
+  isBeta = window.location.hostname === 'localhost' || window.location.pathname.includes('-beta');
 
   readonly exportColumns: string[] = [
     'hcode', 'hn_id', 'dateadm', 'datedsc', 'drg',

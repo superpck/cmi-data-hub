@@ -20,7 +20,7 @@ export class Callback implements OnInit {
 
   redirectRoute = {
     login: '/login',
-    default: '/cmi-api'
+    default: '/drg-util/drg-seeker'
   };
 
   ngOnInit(): void {
