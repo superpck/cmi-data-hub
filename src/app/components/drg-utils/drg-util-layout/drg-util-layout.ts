@@ -53,13 +53,6 @@ export class DrgUtilLayout implements OnInit {
       ],
     },
     {
-      heading: 'AI Tools',
-      items: [
-        { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ai-tools/ipd-summary' },
-        { key: 'on-demand-prompt', label: 'AI Prompt', icon: 'terminal', route: '/ai-tools/drg-prompt' },
-      ],
-    },
-    {
       heading: 'Settings',
       items: [
         { key: 'about', label: 'เกี่ยวกับระบบ', icon: 'info', route: '/drg-util/about' },
@@ -72,15 +65,21 @@ export class DrgUtilLayout implements OnInit {
     cmi: [
       { key: 'data-list', label: 'ทะเบียน IPD', icon: 'table', route: '/drg-util/data-list' },
       { key: 'upload', label: 'Upload CSV', icon: 'upload_file', route: '/drg-util/upload' }
+    ],
+    ai: [
+      { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ai-tools/ipd-summary' },
+      { key: 'on-demand-prompt', label: 'AI Prompt', icon: 'terminal', route: '/ai-tools/drg-prompt' },
     ]
   }
 
   async ngOnInit(): Promise<void> {
     const info = await this.mainService.tokenDecode();
     this.userInfo.set(info ?? {});
+    console.log('User info:', this.userInfo());
 
     if (this.isBeta) {
       this.navGroups[1].items.push(...this.betaMenu.cmi);
+      this.navGroups[0].items.push(...this.betaMenu.ai);
     }
   }
 

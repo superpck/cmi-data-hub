@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import CONFIG from '../configs/config';
-import { Observable } from 'rxjs';
 
 function parseJwt(token: string): any {
   try {
@@ -33,7 +32,9 @@ function isTokenExpired(token: string): boolean {
 export class MainService {
   private router = inject(Router);
 
-  getToken(tokenName = CONFIG.tokenName): string {
+  getToken(tokenName : string | null = null): string {
+    tokenName = tokenName || CONFIG.drgTokenName || CONFIG.tokenName || 'token';
+    console.log(`Getting token with name: ${tokenName}`);
     return sessionStorage.getItem(tokenName) || localStorage.getItem(tokenName) || '';
   }
 
@@ -62,6 +63,25 @@ export class MainService {
     }
     if (token && !isTokenExpired(token)) {
       return await parseJwt(token);
+    }
+    return null;
+  }
+
+  /** Decode JWT without redirecting (DRG-specific token) */
+  async tokenDecodeDrg() {
+    const token = sessionStorage.getItem(CONFIG.drgTokenName);
+    if (!token) {
+      return null;
+    }
+    if (token && !isTokenExpired(token)) {
+      let decoded: any = await parseJwt(token);
+      console.log('Decoded DRG token:', decoded);
+      decoded.canDownload = true; //['สำนักงานสาธารณสุขจังหวัด'].includes(decoded?.health_office_type) ||
+      // ['IA0041130','IA0014165'].includes(decoded?.hcode9) ||
+      //   decoded?.health_office_type?.startsWith('สำนักงานเขตสุขภาพที่') ||
+      //   decoded?.last_monthly;
+      return decoded;
+
     }
     return null;
   }

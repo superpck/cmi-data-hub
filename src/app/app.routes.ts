@@ -71,5 +71,9 @@ export const routes: Routes = [
       },
     ]
   },
+  {
+    path: 'about',
+    loadComponent: () => import('./components/about/about').then((m) => m.AboutComponent),
+  },
   { path: '**', redirectTo: 'login' },
 ];

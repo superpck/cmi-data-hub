@@ -1,13 +1,11 @@
 <div class="page-shell pk-font-bai-jamjuree">
-
   <!-- ── Header ──────────────────────────────────────────── -->
   <!-- <div class="flex items-center gap-2 px-4 py-3 border-b bg-white shrink-0">
     <pk-icon iconSet="google" name="cloud_download" [size]="20" />
     <h1 class="text-lg font-semibold text-sky-600">CMI Data Hub</h1>
     <span class="text-sm text-gray-400">— ค้นหาข้อมูล DRG</span>
   </div> -->
-
-  @if (isBeta){
+  @if (isBeta || isRelease){
   <!-- ── Split pane ────────────────────────────────────────── -->
   <pk-split [initialSize]="20" [minSize]="20" [gutterSize]="2" direction="horizontal" class="split-body">
 
@@ -118,6 +116,7 @@
 
             <!-- Actions -->
             <div class="flex gap-2 pt-2 border-t">
+              @if (drgUserInfo()?.canDownload){
               <button type="submit" [disabled]="form.invalid || loading()" class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white
                      bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 @if (loading()) {
@@ -133,9 +132,18 @@
                 <pk-icon iconSet="google" name="refresh" [size]="18" />
                 รีเซ็ต
               </button>
+              }
             </div>
-
           </form>
+          <div class="m-2 text-slate-600 text-sm text-center flex items-center justify-center gap-2">
+            @if (drgUserInfo()?.canDownload){
+            <pk-icon iconSet="google" name="check_circle" [size]="16" style="color: green" />
+            } @else {
+            <pk-icon iconSet="google" name="cancel" [size]="16" style="color: red" />
+            }
+            {{ drgUserInfo()?.health_office_type }}, {{ drgUserInfo()?.last_monthly || '-'}}
+          </div>
+          <div class="flex mt-1 text-center text-gray-500 justify-center text-xs">{{ currentTime() }}</div>
 
         </div><!-- end scrollable area -->
 
@@ -230,7 +238,7 @@
                 <span>พบข้อมูล {{ dataList().length | number }} รายการ</span>
               </div>
 
-              <div class="w-full overflow-auto">
+              <div class="w-full overflow-auto pb-30">
                 <pk-datagrid [pkDgLoading]="loading()">
                   <pk-dg-header [style.width.px]="100" [pkDgSort]="'hcode'">HCode</pk-dg-header>
                   <pk-dg-header [style.width.px]="100" [pkDgFilter]="'hcode'">HN ID</pk-dg-header>
@@ -271,6 +279,10 @@
                     </div>
                   </pk-dg-footer>
                 </pk-datagrid>
+
+                <!-- <div *ngIf="dataList().length > 0" class="my-4 p-3 bg-gray-50 border rounded text-sm text-gray-500">
+                  <pre>{{ dataList() | json }}</pre>
+                </div> -->
               </div>
               } @else {
               <div class="flex flex-col items-center justify-center h-full min-h-100 gap-3 text-gray-300 select-none">
@@ -290,11 +302,10 @@
   } @else {
 
   <div class="flex flex-col items-center text-2xl justify-center h-full gap-5 text-gray-400 select-none">
-    Relese วันที่ 27 พฤษภาคม 2569
+    Release วันที่ 26 พฤษภาคม 2569 13:30:00 ({{ currentTime() }})
     <p class="text-sm text-gray-500 cursor-pointer" routerLink="/drg-util/about">
       Back
     </p>
   </div>
-
   }
 </div>

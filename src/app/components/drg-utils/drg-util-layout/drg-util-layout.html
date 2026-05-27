@@ -7,15 +7,13 @@
     </div>
 
     <div pkSidenavUser class="flex items-center gap-2 shrink-0">
-      <!-- <img src="avatar.jpg" style="width:34px;height:34px;border-radius:50%;" /> -->
       <pk-icon iconSet="google" name="account_circle" [size]="24" />
       <div class="min-w-0 flex-1" pkTooltip="{{ userInfo().position }} {{ userInfo().hname ?? userInfo().hospname }}"
         tooltipPlacement="top">
-        <p class="text-xs font-semibold text-gray-100 truncate leading-tight">{{ userInfo().name }}</p>
+        <p class="text-xs font-semibold text-gray-100 truncate leading-tight">{{ userInfo().fullname || userInfo().name }}</p>
         <p class="text-[10px] text-gray-400 truncate leading-tight">{{ userInfo().hname ?? userInfo().hospname }}
         </p>
       </div>
-      <!-- <span class="pk-snv-hide-on-icon text-xs">{{ userInfo().fullname || userInfo().name }}</span> -->
       <div>
         <pk-icon iconSet="google" name="logout" [size]="18" class="text-gray-400 cursor-pointer hover:text-white"
           pkTooltip="ออกจากระบบ" (click)="logout()"></pk-icon>

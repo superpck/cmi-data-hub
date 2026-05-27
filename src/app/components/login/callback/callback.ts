@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PkToastrService } from 'ngx-pk-ui';
 import CONFIG from '../../../configs/config';
 import { AuthService } from '../../../services/auth.service';
+import { DrgsService } from '../../../services/drgs.service';
 
 @Component({
   selector: 'callback',
@@ -14,13 +15,14 @@ export class Callback implements OnInit {
   isLoading = false;
   private lastRoute: string | null = null;
 
+  private readonly drgService = inject(DrgsService);
   private readonly authService = inject(AuthService);
   private readonly toastr = inject(PkToastrService);
   private readonly router = inject(Router);
 
   redirectRoute = {
     login: '/login',
-    default: '/drg-util/drg-seeker'
+    default: '/drg-util/about'
   };
 
   ngOnInit(): void {
@@ -47,10 +49,12 @@ export class Callback implements OnInit {
       this.toastr.info('Processing Provider ID login callback...');
       try {
         const response: any = await this.authService.providerIDSignin(code, saved + '-' + state, null);
+        sessionStorage.clear();
         if (response.statusCode == 200 && response.token) {
           sessionStorage.setItem(CONFIG.tokenName, response.token);
           this.toastr.success('เข้าสู่ระบบสำเร็จ ');
           this.safeNavigate(this.redirectRoute.default);
+          await this.getDrgToken();
         } else {
           const message = response.message ?? 'ไม่สามารถรับ token จาก ProviderID ได้ กรุณาลองใหม่อีกครั้ง';
           this.toastr.error(message);
@@ -72,12 +76,15 @@ export class Callback implements OnInit {
           sessionStorage.setItem(CONFIG.tokenName, response.token);
           this.toastr.success('เข้าสู่ระบบสำเร็จ ');
           this.safeNavigate(this.redirectRoute.default);
+          await this.getDrgToken();
         } else {
+          sessionStorage.clear();
           const message = response.message ?? 'ไม่สามารถรับ token จาก MyMOPH ได้ กรุณาลองใหม่อีกครั้ง';
           this.toastr.error(message);
           this.safeNavigate(this.redirectRoute.login);
         }
       } catch (error) {
+        sessionStorage.clear();
         const message = error instanceof Error
           ? `${error.message}: ไม่สามารถดำเนินการ MyMOPH ได้`
           : 'ไม่สามารถดำเนินการ MyMOPH ได้';
@@ -135,4 +142,17 @@ export class Callback implements OnInit {
     const url = window.location.pathname + window.location.hash;
     window.history.replaceState({}, document.title, url);
   }
+
+  async getDrgToken() {
+    if (sessionStorage.getItem(CONFIG.drgTokenName)) {
+      return;
+    }
+    const result: any = await this.drgService.loginByToken(sessionStorage.getItem(CONFIG.tokenName) ?? '');
+    if (result?.token) {
+      sessionStorage.setItem(CONFIG.drgTokenName, result.token);
+    } else {
+      this.toastr.error('Failed to login with token:', result);
+    }
+  }
+
 }

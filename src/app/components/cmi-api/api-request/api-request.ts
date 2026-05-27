@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { from, map, startWith } from 'rxjs';
+import { from, interval, map, startWith } from 'rxjs';
 import {
   PkDatagridModule, PkIcon, PkSplit,
   PkSplitPanel, PkTabsModule,
@@ -14,6 +14,7 @@ import { DrgsService } from '../../../services/drgs.service';
 import { MainService } from '../../../services/main.service';
 import { ExcelService } from '../../../services/excel.service';
 import { Router, RouterLink } from '@angular/router';
+import dayjs from 'dayjs';
 
 const THIS_YEAR = new Date().getFullYear() + 543;
 
@@ -122,7 +123,7 @@ const THAI_PROVINCES: { code: string; name: string; region: number }[] = [
     PkSplitPanel, PkIcon, PkTooltip,
     PkDatagridModule, PkTabsModule,
     PkDatePipe, RouterLink,
-    PkExportButton
+    PkExportButton, CommonModule
   ],
   templateUrl: './api-request.html',
   styleUrls: ['./api-request.scss'],
@@ -144,6 +145,12 @@ export class ApiRequest {
   activeTab = signal('file');
   dataList = signal<any[]>([]);
   isBeta = window.location.hostname === 'localhost' || window.location.pathname.includes('-beta');
+  isRelease = dayjs().isAfter(dayjs('2026-05-26 13:30:00'));
+
+  readonly currentTime = toSignal(
+    interval(1000).pipe(map(() => dayjs().locale('th').format('HH:mm:ss'))),
+    { initialValue: dayjs().locale('th').format('HH:mm:ss') },
+  );
 
   readonly exportColumns: string[] = [
     'hcode', 'hn_id', 'dateadm', 'datedsc', 'drg',
@@ -179,6 +186,10 @@ export class ApiRequest {
   ];
 
   readonly userInfo = toSignal(from(this.mainService.decodeToken()), { initialValue: null as any });
+  readonly drgUserInfo = toSignal(from(this.mainService.tokenDecodeDrg()), { initialValue: null as any });
+  canDownload = signal(['สำนักงานสาธารณสุขจังหวัด'].includes(this.drgUserInfo()?.health_office_type) ||
+    this.drgUserInfo()?.health_office_type?.startsWith('สำนักงานเขตสุขภาพที่') ||
+    this.drgUserInfo()?.last_monthly);
 
   readonly filteredProvinces = toSignal(
     this.form.get('region')!.valueChanges.pipe(
@@ -253,8 +264,9 @@ export class ApiRequest {
         await this.saveBlobToFile(blob, filename);
         this.result.set({ filename, size: blob.size, savedAt: new Date() });
       } else {
-        this.dataList.set(result?.rows || result?.data || []);
-        const dataList = this.dataList().map((row: any) => {
+        const dataList = (result?.rows || result?.data || []).map((row: any) => {
+          delete row.pid;
+          delete row.cid;
           row.sdx = row.sdx1;
           for (let i = 2; i <= 12; i++) {
             if (row[`sdx${i}`]) {
@@ -321,5 +333,7 @@ export class ApiRequest {
     sessionStorage.clear();
     this.router.navigate(['/login']);
   }
+
+
 }
 
