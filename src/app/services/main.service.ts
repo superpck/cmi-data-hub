@@ -75,7 +75,6 @@ export class MainService {
     }
     if (token && !isTokenExpired(token)) {
       let decoded: any = await parseJwt(token);
-      console.log('Decoded DRG token:', decoded);
       decoded.canDownload = true; //['สำนักงานสาธารณสุขจังหวัด'].includes(decoded?.health_office_type) ||
       // ['IA0041130','IA0014165'].includes(decoded?.hcode9) ||
       //   decoded?.health_office_type?.startsWith('สำนักงานเขตสุขภาพที่') ||

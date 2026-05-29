@@ -52,9 +52,9 @@ export class Callback implements OnInit {
         sessionStorage.clear();
         if (response.statusCode == 200 && response.token) {
           sessionStorage.setItem(CONFIG.tokenName, response.token);
+          await this.getDrgToken();
           this.toastr.success('เข้าสู่ระบบสำเร็จ ');
           this.safeNavigate(this.redirectRoute.default);
-          await this.getDrgToken();
         } else {
           const message = response.message ?? 'ไม่สามารถรับ token จาก ProviderID ได้ กรุณาลองใหม่อีกครั้ง';
           this.toastr.error(message);

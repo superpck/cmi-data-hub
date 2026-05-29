@@ -1,7 +1,7 @@
 {
   "name": "drg-ai-frontend",
-  "version": "1.1.1",
-  "subVersion": "2026.05.25-1",
+  "version": "1.2.0",
+  "subVersion": "2026.05.27-1",
   "description": "ระบบข้อมูล CMI กลาง สำหรับการให้บริการข้อมูล CMI แก่หน่วยงานภายในกระทรวงสาธารณสุข",
   "scripts": {
     "ng": "ng",
