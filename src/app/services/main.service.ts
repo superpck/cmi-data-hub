@@ -34,7 +34,6 @@ export class MainService {
 
   getToken(tokenName : string | null = null): string {
     tokenName = tokenName || CONFIG.drgTokenName || CONFIG.tokenName || 'token';
-    console.log(`Getting token with name: ${tokenName}`);
     return sessionStorage.getItem(tokenName) || localStorage.getItem(tokenName) || '';
   }
 

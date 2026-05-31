@@ -230,10 +230,10 @@ export class ApiRequest {
   async onSubmit(): Promise<void> {
     this.dataList.set([]);
     if (this.form.invalid) return;
-    const { year, month, region, province, hospcode, rowPerPage } = this.form.getRawValue();
+    const { year, month, hospcode } = this.form.getRawValue();
     if (!year || !month) return;
 
-    if (province || hospcode) {
+    if (hospcode) {
       await this.fetchData();
     } else {
       await this.downloadZip();
@@ -290,8 +290,9 @@ export class ApiRequest {
       }
     } catch (e: any) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
-      this.error.set(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
-      this.alert.error(e?.message || '', 'เกิดข้อผิดพลาด');
+      const errorMessage = e?.message || 'เกิดข้อผิดพลาด';
+      this.error.set(errorMessage);
+      this.alert.error(errorMessage, 'เกิดข้อผิดพลาด');
     } finally {
       this.loading.set(false);
     }
@@ -299,19 +300,30 @@ export class ApiRequest {
 
   async downloadZip(): Promise<void> {
     if (this.form.invalid) return;
-    const { year, month, region } = this.form.getRawValue();
+    const { year, month, region, province } = this.form.getRawValue();
     if (!year || !month) return;
     this.loading.set(true);
     this.result.set(null);
     this.error.set(null);
     try {
-      const blob = await this.drgsService.downloadZipFile(year, Number(month), region);
-      const filename = `drg_data_${year}_${String(month).padStart(2, '0')}.zip`;
+      const response = await this.drgsService.downloadZipFile(year, Number(month), region, province);
+      const blob = response.body as Blob;
+      let fname = `${year}_${String(month).padStart(2, '0')}`+
+        (province? `_province_${province}`: region? `_region_${region}`: '') + '.zip';
+      
+      // Extract filename from Content-Disposition header
+      const disposition = response.headers?.get('Content-Disposition') ?? '';
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      const filename = disposition && match ? ('drg_'+match[1].replace(/['"]/g, '')+'.zip') : fname;
+      
       await this.saveBlobToFile(blob, filename);
       this.result.set({ filename, size: blob.size, savedAt: new Date() });
-    } catch (e: unknown) {
+    } catch (e: any) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
-      this.error.set(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      const errorMessage = e?.message || 'เกิดข้อผิดพลาด';
+      const err = errorMessage.includes(' 404 ') ? 'ไม่พบข้อมูลที่ร้องขอ' : errorMessage;
+      this.error.set(err);
+      this.alert.error(err, 'เกิดข้อผิดพลาด');
     } finally {
       this.loading.set(false);
     }

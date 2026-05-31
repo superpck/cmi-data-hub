@@ -23,7 +23,7 @@ export class DrgUtilLayout implements OnInit {
   private router = inject(Router);
   loading = signal(false);
 
-  isBeta = window.location.hostname === 'localhost' || window.location.pathname.includes('beta');
+  isBeta = window.location.hostname === 'localhost' || window.location.href.includes('beta');
 
   config = signal(CONFIG);
   userInfo: any = signal({});
@@ -38,9 +38,11 @@ export class DrgUtilLayout implements OnInit {
 
   activeKey = signal('drg-seeker');
 
-  readonly navGroups: PkSidenavGroup[] = [
+  navGroups = signal<PkSidenavGroup[]>([
     {
       heading: 'CMI Data Hub',
+      collapsible: true,
+      collapsed: false,
       items: [
         { key: 'website', label: 'หน้าหลัก CMI', icon: 'home', href: 'https://cmi.moph.go.th' },
         { key: 'download', label: 'Download ข้อมูล', icon: 'csv', route: '/cmi-api/download' },
@@ -48,18 +50,24 @@ export class DrgUtilLayout implements OnInit {
     },
     {
       heading: 'CMI Data',
+      collapsible: true,
+      collapsed: true,
       items: [
-        { key: 'drg-seeker', label: 'DRG Seeker', icon: 'monitor_heart', route: '/drg-util/drg-seeker' },
+        { key: 'รายงาน', label: 'DRG Report', icon: 'analytics', href: 'https://cmi.moph.go.th/report/default/sumall' },
+        { key: 'utility', label: 'DRG Utility', icon: 'troubleshoot', href: 'https://cmi.moph.go.th/util/default/download' },
+        { key: 'drg-seeker', label: 'DRG Seeker', icon: 'search_insights', route: '/drg-util/drg-seeker' },
       ],
     },
     {
       heading: 'Settings',
+      collapsible: true,
+      collapsed: true,
       items: [
         { key: 'about', label: 'เกี่ยวกับระบบ', icon: 'info', route: '/drg-util/about' },
         { key: 'logout', label: 'Logout', icon: 'logout', fn: () => this.logout() },
       ],
     },
-  ];
+  ]);
 
   betaMenu = {
     cmi: [
@@ -75,11 +83,12 @@ export class DrgUtilLayout implements OnInit {
   async ngOnInit(): Promise<void> {
     const info = await this.mainService.tokenDecode();
     this.userInfo.set(info ?? {});
-    console.log('User info:', this.userInfo());
-
     if (this.isBeta) {
-      this.navGroups[1].items.push(...this.betaMenu.cmi);
-      this.navGroups[0].items.push(...this.betaMenu.ai);
+      this.navGroups.update(groups => {
+        groups[1].items.push(...this.betaMenu.cmi);
+        groups[0].items.push(...this.betaMenu.ai);
+        return [...groups];
+      });
     }
   }
 

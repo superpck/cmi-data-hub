@@ -1,5 +1,5 @@
 <div class="drg-util-shell pk-font-bai-jamjuree">
-  <pk-sidenav [groups]="navGroups" [activeKey]="activeKey()" mode="auto" theme="primary" [breakpoint]="768">
+  <pk-sidenav [groups]="navGroups()" [activeKey]="activeKey()" mode="auto" theme="orange" [breakpoint]="768">
 
     <div pkSidenavHeader style="display:flex;align-items:center;gap:10px;font-weight:700;">
       <span class="w-8"><img src="images/logomoph.png" alt=""></span>
@@ -10,8 +10,8 @@
       <pk-icon iconSet="google" name="account_circle" [size]="24" />
       <div class="min-w-0 flex-1" pkTooltip="{{ userInfo().position }} {{ userInfo().hname ?? userInfo().hospname }}"
         tooltipPlacement="top">
-        <p class="text-xs font-semibold text-gray-100 truncate leading-tight">{{ userInfo().fullname || userInfo().name }}</p>
-        <p class="text-[10px] text-gray-400 truncate leading-tight">{{ userInfo().hname ?? userInfo().hospname }}
+        <p class="text-xs font-semibold text-white truncate leading-tight">{{ userInfo().fullname || userInfo().name }}</p>
+        <p class="text-[10px] text-orange-300 truncate leading-tight">{{ userInfo().hname ?? userInfo().hospname }}
         </p>
       </div>
       <div>

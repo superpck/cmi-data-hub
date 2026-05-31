@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './services/guards/auth.guard';
+import { consentGuard } from './services/guards/consent.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'drg-util', pathMatch: 'full' },
@@ -62,7 +63,12 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'about', pathMatch: 'full' },
       {
+        path: 'consent',
+        loadComponent: () => import('./components/cmi-api/consent-form/consent-form').then((m) => m.ConsentForm),
+      },
+      {
         path: 'download',
+        canActivate: [consentGuard],
         loadComponent: () => import('./components/cmi-api/api-request/api-request').then((m) => m.ApiRequest),
       },
       {

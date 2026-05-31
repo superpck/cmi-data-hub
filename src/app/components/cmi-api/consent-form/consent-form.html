@@ -1,0 +1,78 @@
+<div class="consent-container">
+  <div class="consent-card">
+    <div class="consent-header">
+      <pk-icon iconSet="google" name="shield_toggle" [size]="56" class="header-icon"></pk-icon>
+      <h1>ข้อตกลงการใช้งานข้อมูล</h1>
+      <p class="subtitle">Data Usage Consent Agreement</p>
+    </div>
+
+    <div class="consent-content pk-font-bai-jamjuree">
+      <div class="warning-box">
+        <pk-icon iconSet="google" name="gpp_maybe" [size]="24"></pk-icon>
+        <p>กรุณาอ่านและทำความเข้าใจข้อตกลงต่อไปนี้ก่อนดาวน์โหลดข้อมูล</p>
+      </div>
+
+      <div class="terms-section">
+        <h2>วัตถุประสงค์การใช้ข้อมูล</h2>
+        <ul>
+          <li>ข้อมูลที่ดาวน์โหลดมีวัตถุประสงค์เพื่อการวิเคราะห์ทางสถิติและการบริหารจัดการองค์กรเท่านั้น</li>
+          <li>ข้อมูลเป็นข้อมูลรายบุคคลที่อยู่ในความรับผิดชอบตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</li>
+          <li>ผู้ใช้งานต้องรักษาความลับของข้อมูลและไม่เปิดเผยต่อบุคคลภายนอก</li>
+        </ul>
+
+        <h2>ความรับผิดชอบของผู้ใช้งาน</h2>
+        <ul>
+          <li><strong>ห้ามเปิดเผย</strong> ข้อมูลส่วนบุคคลที่สามารถระบุตัวตนได้</li>
+          <li><strong>ห้ามนำไปใช้</strong> นอกเหนือจากวัตถุประสงค์ที่ได้รับอนุญาต</li>
+          <li><strong>ต้องลบข้อมูล</strong> ทันทีหลังจากใช้งานเสร็จสิ้นหรือภายใน 30 วัน</li>
+          <li><strong>ต้องเก็บรักษา</strong> ข้อมูลอย่างปลอดภัย ไม่ให้บุคคลที่ไม่มีสิทธิเข้าถึง</li>
+          <li><strong>ห้ามคัดลอก</strong> หรือทำสำเนาข้อมูลโดยไม่จำเป็น</li>
+        </ul>
+
+        <h2>การจัดการข้อมูลหลังใช้งาน</h2>
+        <ul>
+          <li>ผู้ใช้งานต้องลบข้อมูลออกจากเครื่องคอมพิวเตอร์และอุปกรณ์จัดเก็บข้อมูลทั้งหมด</li>
+          <li>การลบข้อมูลต้องดำเนินการอย่างสมบูรณ์ ไม่สามารถกู้คืนได้</li>
+          <li>หากมีการจัดพิมพ์เอกสาร ต้องทำลายเอกสารด้วยเครื่องทำลายเอกสารหรือวิธีการที่เหมาะสม</li>
+        </ul>
+
+        <h2>บทกำหนดโทษ</h2>
+        <ul>
+          <li>การละเมิดข้อตกลงนี้อาจเป็นความผิดตามกฎหมายที่เกี่ยวข้อง</li>
+          <li>อาจถูกดำเนินคดีทั้งทางแพ่งและอาญา รวมถึงความรับผิดทางวินัย</li>
+          <li>สิทธิการใช้งานระบบอาจถูกระงับหรือยกเลิก</li>
+        </ul>
+      </div>
+
+      <div class="declaration-box pk-font-mitr">
+        <h3>คำรับรอง</h3>
+        <p>ข้าพเจ้าได้อ่านและเข้าใจข้อตกลงการใช้งานข้อมูลข้างต้นแล้ว และยินยอมปฏิบัติตามเงื่อนไขทุกประการ</p>
+        <p><strong>การยอมรับนี้มีผลบังคับใช้เป็นระยะเวลา 6 เดือน</strong></p>
+      </div>
+
+      <div class="consent-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cancel()"
+          [disabled]="loading()">
+          <pk-icon iconSet="google" name="x"></pk-icon>
+          ยกเลิก
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="acceptConsent()"
+          [disabled]="loading()">
+          @if (loading()) {
+            <span class="pk-spinner pk-spinner-inline"></span>
+          } @else {
+            <pk-icon iconSet="google" name="check" [size]="20"></pk-icon>
+          }
+          ยอมรับและดำเนินการต่อ
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

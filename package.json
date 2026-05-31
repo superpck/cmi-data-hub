@@ -1,7 +1,7 @@
 {
   "name": "drg-ai-frontend",
-  "version": "1.2.0",
-  "subVersion": "2026.05.27-1",
+  "version": "14.0",
+  "subVersion": "2026.05.31-1",
   "description": "ระบบข้อมูล CMI กลาง สำหรับการให้บริการข้อมูล CMI แก่หน่วยงานภายในกระทรวงสาธารณสุข",
   "scripts": {
     "ng": "ng",
@@ -31,9 +31,13 @@
     "@angular/forms": "^21.2.14",
     "@angular/platform-browser": "^21.2.14",
     "@angular/router": "^21.2.14",
+    "@bluehalo/ngx-leaflet": "^21.2.1",
     "dayjs": "^1.11.20",
+    "echarts": "^6.1.0",
     "file-saver": "^2.0.5",
-    "ngx-pk-ui": "^2.17.1",
+    "leaflet": "^1.9.4",
+    "ngx-echarts": "^21.0.0",
+    "ngx-pk-ui": "^2.18.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

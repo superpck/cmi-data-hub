@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import CONFIG from '../configs/config';
 
 @Injectable({ providedIn: 'root' })
@@ -138,19 +138,65 @@ export class DrgsService {
           this.http.post(`${this.url}/data-hub`, options)
         );
       }
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      // When responseType is 'blob', error.error is a Blob, need to read it as text
+      if (error?.error instanceof Blob) {
+        try {
+          const text = await error.error.text();
+          const errorObj = JSON.parse(text);
+          throw new Error(errorObj.message || 'เกิดข้อผิดพลาด');
+        } catch (parseError) {
+          throw new Error(error?.message || 'เกิดข้อผิดพลาด');
+        }
+      }
+      const errorMessage = error?.error?.message || error?.message || 'เกิดข้อผิดพลาด';
+      throw new Error(errorMessage);
     }
-
   }
 
-  async downloadZipFile(year: number, month: number, region: string | null= null): Promise<Blob> {
+  async downloadZipFile(year: number, month: number, region: string | null = null, province: string | null = null): Promise<any> {
     try {
-      return await firstValueFrom(
-        this.http.post(`${this.url}/data-hub/zip-file`, { year, month, region }, { responseType: 'blob' })
+      const result = await lastValueFrom(
+        this.http.post(`${this.url}/data-hub/zip-file`, { year, month, region, province }, { responseType: 'blob', observe: 'response' })
       );
+      return result;
+    } catch (error: any) {
+      if (error?.error instanceof Blob) {
+        try {
+          const text = await error.error.text();
+          throw new Error(JSON.parse(text));
+        } catch (parseError) {
+          throw new Error(error?.message || 'เกิดข้อผิดพลาด');
+        }
+      }
+      const errorMessage = error?.error?.message || error?.message || 'เกิดข้อผิดพลาด';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async getConsent(form: string): Promise<any> {
+    try {
+      // { status, result: { date, form }
+      return await firstValueFrom(this.http.get(`${this.url}/data-hub/get-consent/${form}`));
     } catch (error) {
-      throw error;
+      return error;
+    }
+  }
+
+  async saveConsent(form: string): Promise<any> {
+    try {
+      // { status, result: [id]
+      return await firstValueFrom(this.http.put(`${this.url}/data-hub/save-consent/${form}`, {}));
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async saveIPD(data: any): Promise<any> {
+    try {
+      return await firstValueFrom(this.http.put(`${this.url}/data-hub/save-ipd`, { data }));
+    } catch (error) {
+      return error;
     }
   }
 }
