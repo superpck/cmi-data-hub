@@ -84,7 +84,7 @@
             </div>
 
             <!-- Hospcode -->
-            <div class="field">
+            <!-- <div class="field">
               <label class="field-label">รหัสสถานพยาบาล</label>
               <input type="text" formControlName="hospcode" class="field-input"
                 [class.field-input--err]="form.get('hospcode')?.invalid && form.get('hospcode')?.touched"
@@ -92,14 +92,14 @@
               @if (form.get('hospcode')?.invalid && form.get('hospcode')?.touched) {
               <span class="field-err">กรอก 5 หรือ 9 หลักเท่านั้น</span>
               }
-            </div>
+            </div> -->
 
             <!-- Data format -->
             <div class="field">
               <label class="field-label">รูปแบบข้อมูล</label>
               <select formControlName="format" class="field-input">
                 <option value="JSON">JSON</option>
-                <option value="CSV">CSV</option>
+                <option value="CSV">CSV (zip file)</option>
               </select>
             </div>
 

@@ -86,6 +86,7 @@ export class DrgUtilLayout implements OnInit {
       collapsible: true,
       collapsed: true,
       items: [
+        { key: 'ทีม', label: 'ทีมพัฒนาระบบ', icon: 'group', href: 'https://cmi.moph.go.th/site/about' },
         { key: 'about', label: 'เกี่ยวกับระบบ', icon: 'info', route: '/drg-util/about' },
         { key: 'logout', label: 'Logout', icon: 'logout', fn: () => this.logout() },
       ],
