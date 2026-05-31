@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
-import { PkIcon, PkSidenav, PkTooltip, type PkSidenavGroup, type PkSidenavItem } from 'ngx-pk-ui';
+import { PkIcon, PkSidenav, PkTooltip, type PkSidenavGroup, type PkSidenavItem, type PkSidenavTheme } from 'ngx-pk-ui';
 import { MainService } from '../../../services/main.service';
 import { CommonModule } from '@angular/common';
 import CONFIG from '../../../configs/config';
@@ -27,6 +27,29 @@ export class DrgUtilLayout implements OnInit {
 
   config = signal(CONFIG);
   userInfo: any = signal({});
+  sidenavTheme = signal<PkSidenavTheme>((localStorage.getItem('sidenavTheme') as PkSidenavTheme) || 'orange');
+
+  // Theme options
+  readonly themeOptions: { value: PkSidenavTheme; label: string }[] = [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'primary', label: 'Primary' },
+    { value: 'orange', label: 'Orange' },
+    { value: 'blue', label: 'Blue' },
+    { value: 'teal', label: 'Teal' },
+    { value: 'indigo', label: 'Indigo' },
+    { value: 'terra-cotta', label: 'Terra Cotta' },
+    { value: 'air-force-blue', label: 'Air Force Blue' },
+    { value: 'peacock-blue', label: 'Peacock Blue' }
+  ];
+
+  constructor() {
+    // Auto-save theme to localStorage when changed
+    effect(() => {
+      const theme = this.sidenavTheme();
+      localStorage.setItem('sidenavTheme', theme);
+    });
+  }
 
   private readonly url = toSignal(
     this.router.events.pipe(
@@ -93,6 +116,10 @@ export class DrgUtilLayout implements OnInit {
   }
 
   onItemClick(item: PkSidenavItem) { this.activeKey.set(item.key); }
+
+  changeTheme(theme: PkSidenavTheme): void {
+    this.sidenavTheme.set(theme);
+  }
 
   logout(): void {
     sessionStorage.clear();
