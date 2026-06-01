@@ -244,106 +244,112 @@
 
           <!-- Stroke and Appendicitis Statistics Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pk-font-bai-jamjuree">
-            <!-- Stroke Statistics Card -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div class="text-sm font-semibold text-gray-700 mb-3">Stroke (I60-I64)</div>
-              <div class="grid grid-cols-3 gap-3 mb-4">
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">Refer</div>
-                  <div class="text-xl font-bold text-blue-600">{{ stats().strokeRefer | number }}</div>
+            <!-- Left Column: Stroke -->
+            <div>
+              <!-- Stroke Statistics Card -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="text-sm font-semibold text-gray-700 mb-3">Stroke (I60-I64)</div>
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">Refer</div>
+                    <div class="text-xl font-bold text-blue-600">{{ stats().strokeRefer | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">Non-Refer</div>
+                    <div class="text-xl font-bold text-sky-600">{{ stats().strokeNoRefer | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">รวม</div>
+                    <div class="text-xl font-bold text-cyan-600">{{ stats().strokeTotal | number }}</div>
+                  </div>
                 </div>
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">Non-Refer</div>
-                  <div class="text-xl font-bold text-sky-600">{{ stats().strokeNoRefer | number }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">รวม</div>
-                  <div class="text-xl font-bold text-cyan-600">{{ stats().strokeTotal | number }}</div>
-                </div>
-              </div>
-              <div class="border-t border-blue-200 pt-3">
-                <div class="text-xs font-medium text-gray-700 mb-2">Stroke + rtPA (9910) ตามช่วงเวลา</div>
-                <div class="grid grid-cols-3 gap-2 text-center">
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">≤ 3 ชม.</div>
-                    <div class="text-lg font-bold text-green-600">{{ stats().strokeRtpaWithin3h | number }}</div>
-                  </div>
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">> 3-≤ 4 ชม.</div>
-                    <div class="text-lg font-bold text-teal-600">{{ stats().strokeRtpaWithin4h | number }}</div>
-                  </div>
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">> 4-≤ 6 ชม.</div>
-                    <div class="text-lg font-bold text-cyan-600">{{ stats().strokeRtpaWithin6h | number }}</div>
-                  </div>
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">> 6-≤ 12 ชม.</div>
-                    <div class="text-lg font-bold text-blue-600">{{ stats().strokeRtpaWithin12h | number }}</div>
-                  </div>
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">> 12-≤ 24 ชม.</div>
-                    <div class="text-lg font-bold text-amber-600">{{ stats().strokeRtpaWithin24h | number }}</div>
-                  </div>
-                  <div class="bg-white rounded p-2">
-                    <div class="text-xs text-gray-600">> 24 ชม.</div>
-                    <div class="text-lg font-bold text-red-600">{{ stats().strokeRtpaOver24h | number }}</div>
+                <div class="border-t border-blue-200 pt-3">
+                  <div class="text-xs font-medium text-gray-700 mb-2">Stroke + rtPA (9910) ตามช่วงเวลา</div>
+                  <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">≤ 3 ชม.</div>
+                      <div class="text-lg font-bold text-green-600">{{ stats().strokeRtpaWithin3h | number }}</div>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">> 3-≤ 4 ชม.</div>
+                      <div class="text-lg font-bold text-teal-600">{{ stats().strokeRtpaWithin4h | number }}</div>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">> 4-≤ 6 ชม.</div>
+                      <div class="text-lg font-bold text-cyan-600">{{ stats().strokeRtpaWithin6h | number }}</div>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">> 6-≤ 12 ชม.</div>
+                      <div class="text-lg font-bold text-blue-600">{{ stats().strokeRtpaWithin12h | number }}</div>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">> 12-≤ 24 ชม.</div>
+                      <div class="text-lg font-bold text-amber-600">{{ stats().strokeRtpaWithin24h | number }}</div>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                      <div class="text-xs text-gray-600">> 24 ชม.</div>
+                      <div class="text-lg font-bold text-red-600">{{ stats().strokeRtpaOver24h | number }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Appendicitis Statistics Card -->
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div class="text-sm font-semibold text-gray-700 mb-3">Appendicitis (K35-K37) + ผ่าตัด (4701, 4709)</div>
-              <div class="grid grid-cols-4 gap-3">
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">รวม</div>
-                  <div class="text-xl font-bold text-purple-600">{{ stats().appendicitisTotal | number }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">≤ 24 ชม.</div>
-                  <div class="text-xl font-bold text-green-600">{{ stats().appendicitisWithin24h | number }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">24-48 ชม.</div>
-                  <div class="text-xl font-bold text-amber-600">{{ stats().appendicitis24to48h | number }}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-600 mb-1">> 48 ชม.</div>
-                  <div class="text-xl font-bold text-red-600">{{ stats().appendicitisOver48h | number }}</div>
+            <!-- Right Column: Appendicitis and Delivery -->
+            <div class="flex flex-col gap-4">
+              <!-- Appendicitis Statistics Card -->
+              <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="text-sm font-semibold text-gray-700 mb-3">Appendicitis (K35-K37) + ผ่าตัด (4701, 4709)</div>
+                <div class="grid grid-cols-4 gap-3">
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">รวม</div>
+                    <div class="text-xl font-bold text-purple-600">{{ stats().appendicitisTotal | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">≤ 24 ชม.</div>
+                    <div class="text-xl font-bold text-green-600">{{ stats().appendicitisWithin24h | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">24-48 ชม.</div>
+                    <div class="text-xl font-bold text-amber-600">{{ stats().appendicitis24to48h | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">> 48 ชม.</div>
+                    <div class="text-xl font-bold text-red-600">{{ stats().appendicitisOver48h | number }}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Delivery Statistics Card -->
-          @if (stats().deliveryTotal > 0) {
-          <div class="bg-pink-50 border border-pink-200 rounded-lg p-4 mb-4 pk-font-bai-jamjuree">
-            <div class="text-sm font-semibold text-gray-700 mb-3">การคลอด (O60-O84)</div>
-            <div class="grid grid-cols-5 gap-3">
-              <div>
-                <div class="text-xs text-gray-600 mb-1">รวม</div>
-                <div class="text-xl font-bold text-pink-600">{{ stats().deliveryTotal | number }}</div>
+              <!-- Delivery Statistics Card -->
+              @if (stats().deliveryTotal > 0) {
+              <div class="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                <div class="text-sm font-semibold text-gray-700 mb-3">การคลอด (O60-O84)</div>
+                <div class="grid grid-cols-5 gap-3">
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">รวม</div>
+                    <div class="text-xl font-bold text-pink-600">{{ stats().deliveryTotal | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">คลอดปกติ (O80)</div>
+                    <div class="text-xl font-bold text-green-600">{{ stats().deliveryNormal | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">ผ่าคลอด (O82)</div>
+                    <div class="text-xl font-bold text-blue-600">{{ stats().deliveryCesarean | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">อื่นๆ</div>
+                    <div class="text-xl font-bold text-purple-600">{{ stats().deliveryOther | number }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-600 mb-1">เสียชีวิต (DISCHT 8,9)</div>
+                    <div class="text-xl font-bold text-red-600">{{ stats().deliveryDeath | number }}</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="text-xs text-gray-600 mb-1">คลอดปกติ (O80)</div>
-                <div class="text-xl font-bold text-green-600">{{ stats().deliveryNormal | number }}</div>
-              </div>
-              <div>
-                <div class="text-xs text-gray-600 mb-1">ผ่าคลอด (O82)</div>
-                <div class="text-xl font-bold text-blue-600">{{ stats().deliveryCesarean | number }}</div>
-              </div>
-              <div>
-                <div class="text-xs text-gray-600 mb-1">อื่นๆ</div>
-                <div class="text-xl font-bold text-purple-600">{{ stats().deliveryOther | number }}</div>
-              </div>
-              <div>
-                <div class="text-xs text-gray-600 mb-1">เสียชีวิต (DISCHT 8,9)</div>
-                <div class="text-xl font-bold text-red-600">{{ stats().deliveryDeath | number }}</div>
-              </div>
+              }
             </div>
           </div>
-          }
 
           <!-- Chart -->
           <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
