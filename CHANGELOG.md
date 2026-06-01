@@ -1,84 +1,84 @@
-# Changelog
+# ประวัติการเปลี่ยนแปลง
 
-All notable changes to the CMI Data Hub project will be documented in this file.
+บันทึกการเปลี่ยนแปลงที่สำคัญทั้งหมดของโครงการ CMI Data Hub
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+รูปแบบอ้างอิงจาก [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+และโครงการนี้ปฏิบัติตาม [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.4.2] - 2026-06-01
 
-### Added
-- Active Bed report feature
-- New reporting capabilities
+### เพิ่มเติม
+- ฟีเจอร์รายงาน Active Bed
+- ความสามารถในการรายงานแบบใหม่
 
-### Changed
-- UI/UX improvements with CSS adjustments
-- Layout refinements for better user experience
-- Updated ngx-pk-ui to v2.18.1
-- Updated Angular to v21.2.15
-- Updated @bluehalo/ngx-leaflet to v21.2.1
+### เปลี่ยนแปลง
+- ปรับปรุง UI/UX ด้วยการปรับแต่ง CSS
+- ปรับปรุงเลย์เอาต์เพื่อประสบการณ์ผู้ใช้ที่ดีขึ้น
+- อัปเดต ngx-pk-ui เป็น v2.18.1
+- อัปเดต Angular เป็น v21.2.15
+- อัปเดต @bluehalo/ngx-leaflet เป็น v21.2.1
 
-### Fixed
-- CSS styling issues
+### แก้ไข
+- แก้ไขปัญหาการจัดรูปแบบ CSS
 
 ## [1.4.1] - 2026-05-31
 
-### Changed
-- Package dependency updates
-- Angular CLI updates
+### เปลี่ยนแปลง
+- อัปเดต package dependencies
+- อัปเดต Angular CLI
 
 ## [1.4.0] - 2026-05-30
 
-### Added
-- CSV upload functionality with batch processing
-- Real-time progress tracking for file uploads
-- DRG token retrieval after login
-- DRG token handling in OAuth callback
+### เพิ่มเติม
+- ฟังก์ชันอัปโหลด CSV พร้อมการประมวลผลแบบ batch
+- ติดตามความคืบหน้าแบบ real-time สำหรับการอัปโหลดไฟล์
+- ดึง DRG token หลังจาก login
+- จัดการ DRG token ใน OAuth callback
 
-### Changed
-- Upgraded to Angular 21.2.15
-- Updated Angular CLI tools
+### เปลี่ยนแปลง
+- อัปเกรดเป็น Angular 21.2.15
+- อัปเดตเครื่องมือ Angular CLI
 
-### Fixed
-- `showSaveFilePicker` API bug fix for file downloads
+### แก้ไข
+- แก้ไขบั๊ก `showSaveFilePicker` API สำหรับการดาวน์โหลดไฟล์
 
 ## [1.3.0] - 2026-05-25
 
-### Added
-- Beta testing features
-- Feature flags for beta environment
-- Additional menu items for beta users
+### เพิ่มเติม
+- ฟีเจอร์สำหรับการทดสอบแบบ beta
+- Feature flags สำหรับสภาพแวดล้อม beta
+- เมนูเพิ่มเติมสำหรับผู้ใช้ beta
 
 ## [1.2.0] - 2026-05-20
 
-### Changed
-- Major upgrade to Angular 21
-- Migrated to standalone components architecture
-- Implemented signals for state management
-- Updated to native control flow (`@if`, `@for`, `@switch`)
-- Migrated to Tailwind CSS v4
+### เปลี่ยนแปลง
+- อัปเกรดครั้งใหญ่เป็น Angular 21
+- ย้ายไปใช้สถาปัตยกรรม standalone components
+- ใช้ signals สำหรับการจัดการ state
+- อัปเดตเป็น native control flow (`@if`, `@for`, `@switch`)
+- ย้ายไปใช้ Tailwind CSS v4
 
-### Added
-- Enhanced TypeScript support (v5.9.2)
-- Modern Angular best practices implementation
+### เพิ่มเติม
+- รองรับ TypeScript แบบปรับปรุง (v5.9.2)
+- ใช้แนวทางปฏิบัติที่ดีที่สุดของ Angular สมัยใหม่
 
 ## [1.0.0] - 2026-05-15
 
-### Added
-- Initial release of CMI Data Hub
-- OAuth 2.0 authentication system
-- JWT token-based authorization
-- DRG Seeker functionality
-- IPD Data List with search and pagination
-- CMI API data download with consent form
-- AI-powered IPD summary
-- AI Prompt interface
-- Excel export functionality
-- Theme management (dark mode support)
-- Responsive design with ngx-pk-ui
-- Thai language support with dayjs
+### เพิ่มเติม
+- เปิดตัวครั้งแรกของ CMI Data Hub
+- ระบบ OAuth 2.0 authentication
+- การอนุญาตแบบ JWT token
+- ฟังก์ชัน DRG Seeker
+- รายการข้อมูล IPD พร้อมค้นหาและ pagination
+- ดาวน์โหลดข้อมูลจาก CMI API พร้อมฟอร์มยินยอม
+- สรุปข้อมูล IPD ด้วย AI
+- อินเทอร์เฟซ AI Prompt
+- ฟังก์ชันส่งออก Excel
+- การจัดการธีม (รองรับโหมดมืด)
+- ออกแบบแบบ responsive ด้วย ngx-pk-ui
+- รองรับภาษาไทยด้วย dayjs
 
-### Security
-- Route guards with consent validation
-- Auto token refresh mechanism
-- HTTP interceptors for auth token injection
+### ความปลอดภัย
+- Route guards พร้อมการตรวจสอบการยินยอม
+- กลไกรีเฟรช token อัตโนมัติ
+- HTTP interceptors สำหรับการแทรก auth token
