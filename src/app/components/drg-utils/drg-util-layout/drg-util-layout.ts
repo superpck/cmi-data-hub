@@ -74,7 +74,7 @@ export class DrgUtilLayout implements OnInit {
     {
       heading: 'CMI Data',
       collapsible: true,
-      collapsed: true,
+      collapsed: false,
       items: [
         { key: 'รายงาน', label: 'DRG Report', icon: 'analytics', href: 'https://cmi.moph.go.th/report/default/sumall' },
         { key: 'utility', label: 'DRG Utility', icon: 'troubleshoot', href: 'https://cmi.moph.go.th/util/default/download' },

@@ -81,6 +81,7 @@ export class UploadComponent implements OnInit, AfterViewInit {
   // Stats signals
   stats = signal({
     totalCases: 0,
+    casesWithAdjrw0: 0,
     totalAdjrw: 0,
     cmi: 0,
     totalAmount: 0,
@@ -89,6 +90,8 @@ export class UploadComponent implements OnInit, AfterViewInit {
     totalPerActlos: 0,
     sumLosMinusLeaveday: 0,
     avgActlosPerCase: 0,
+    activeBed: 0,
+    totalDays: 0,
     percentExceedWtlos: 0,
     percentExceedOT: 0,
     strokeRefer: 0,
@@ -392,6 +395,7 @@ export class UploadComponent implements OnInit, AfterViewInit {
     const totalCases = this.dataList.length;
     const totalAdjrw = this.dataList.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
     const casesWithAdjrw = this.dataList.filter(row => +row.ADJRW > 0).length;
+    const casesWithAdjrw0 = this.dataList.filter(row => +row.ADJRW === 0).length;
     const totalAmount = this.dataList.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
     const totalAmountWithAdjrw = this.dataList
       .filter(row => +row.ADJRW > 0)
@@ -413,6 +417,23 @@ export class UploadComponent implements OnInit, AfterViewInit {
       const ot = Math.ceil(+row.OT || 0);
       return actlos > ot;
     }).length;
+
+    // Calculate Active Bed (total ACTLOS / number of days from first to last DATEDSC)
+    let totalDays = 0;
+    let activeBed = 0;
+    if (this.dataList.length > 0) {
+      const dates = this.dataList
+        .map(row => row.DATEDSC)
+        .filter(d => d)
+        .sort();
+      
+      if (dates.length > 0) {
+        const minDate = dayjs(dates[0]);
+        const maxDate = dayjs(dates[dates.length - 1]);
+        totalDays = maxDate.diff(minDate, 'day') + 1; // +1 to include both first and last day
+        activeBed = totalDays > 0 ? sumLosMinusLeaveday / totalDays : 0;
+      }
+    }
 
     // Calculate Stroke statistics (ICD I60-I64)
     const isStroke = (icd: string): boolean => {
@@ -597,6 +618,7 @@ export class UploadComponent implements OnInit, AfterViewInit {
 
     this.stats.set({
       totalCases,
+      casesWithAdjrw0,
       totalAdjrw,
       cmi: casesWithAdjrw > 0 ? totalAdjrw / casesWithAdjrw : 0,
       totalAmount,
@@ -605,6 +627,8 @@ export class UploadComponent implements OnInit, AfterViewInit {
       totalPerActlos: sumLosMinusLeaveday > 0 ? totalAmount / sumLosMinusLeaveday : 0,
       sumLosMinusLeaveday,
       avgActlosPerCase: totalCases > 0 ? sumLosMinusLeaveday / totalCases : 0,
+      activeBed,
+      totalDays,
       percentExceedWtlos: totalCases > 0 ? (casesExceedWtlos / totalCases) * 100 : 0,
       percentExceedOT: totalCases > 0 ? (casesExceedOT / totalCases) * 100 : 0,
       strokeRefer,
