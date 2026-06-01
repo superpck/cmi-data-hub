@@ -167,4 +167,4 @@ Internal use only - Ministry of Public Health, Thailand
 
 ## 👨‍💻 Version
 
-**v14.0** (2026.05.31-1)
+**v1.4.2** (2026.06.01-1)
