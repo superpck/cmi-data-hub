@@ -83,8 +83,32 @@ export class UploadComponent implements OnInit, AfterViewInit {
     totalCases: 0,
     totalAdjrw: 0,
     cmi: 0,
+    totalAmount: 0,
     totalPerCase: 0,
     totalPerAdjrw: 0,
+    totalPerActlos: 0,
+    sumLosMinusLeaveday: 0,
+    avgActlosPerCase: 0,
+    percentExceedWtlos: 0,
+    percentExceedOT: 0,
+    strokeRefer: 0,
+    strokeNoRefer: 0,
+    strokeTotal: 0,
+    strokeRtpaWithin3h: 0,
+    strokeRtpaWithin4h: 0,
+    strokeRtpaWithin6h: 0,
+    strokeRtpaWithin12h: 0,
+    strokeRtpaWithin24h: 0,
+    strokeRtpaOver24h: 0,
+    appendicitisTotal: 0,
+    appendicitisWithin24h: 0,
+    appendicitis24to48h: 0,
+    appendicitisOver48h: 0,
+    deliveryTotal: 0,
+    deliveryNormal: 0,
+    deliveryCesarean: 0,
+    deliveryOther: 0,
+    deliveryDeath: 0,
   });
 
   chartData = signal<any>(null);
@@ -166,7 +190,7 @@ export class UploadComponent implements OnInit, AfterViewInit {
   }
 
   async upload(item: any): Promise<void> {
-    const answer = this.alert.confirm('ยืนยันการอัปโหลดข้อมูลไปยัง CMI Data Hub?');
+    const answer = await this.alert.confirm('ยืนยันการอัปโหลดข้อมูลไปยัง CMI Data Hub?');
     console.log('User confirmation:', answer);
     if (!answer) return;
     
@@ -299,6 +323,10 @@ export class UploadComponent implements OnInit, AfterViewInit {
       row.LOS = +row.LOS;
       row.SEX = +row.SEX;
       row.TOTAL = +row.TOTAL || 0;
+      row.WTLOS = +row.WTLOS || 0;
+      row.OT = +row.OT || 0;
+      row.LEAVEDAY = +row.LEAVEDAY || 0;
+      row.ACTLOS = (+row.LOS || 0) - (+row.LEAVEDAY || 0);
 
       if (!row.PERSON_ID && row.CID) { row.PERSON_ID = row.CID; delete row.CID; }
 
@@ -369,12 +397,234 @@ export class UploadComponent implements OnInit, AfterViewInit {
       .filter(row => +row.ADJRW > 0)
       .reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
 
+    // Calculate LOS statistics (ACTLOS = LOS - LEAVEDAY)
+    const sumLosMinusLeaveday = this.dataList.reduce((sum, row) => {
+      return sum + (+row.ACTLOS || 0);
+    }, 0);
+
+    const casesExceedWtlos = this.dataList.filter(row => {
+      const actlos = +row.ACTLOS || 0;
+      const wtlos = Math.ceil(+row.WTLOS || 0);
+      return actlos > wtlos;
+    }).length;
+
+    const casesExceedOT = this.dataList.filter(row => {
+      const actlos = +row.ACTLOS || 0;
+      const ot = Math.ceil(+row.OT || 0);
+      return actlos > ot;
+    }).length;
+
+    // Calculate Stroke statistics (ICD I60-I64)
+    const isStroke = (icd: string): boolean => {
+      if (!icd) return false;
+      const code = icd.trim().toUpperCase();
+      return code.startsWith('I60') || code.startsWith('I61') || 
+             code.startsWith('I62') || code.startsWith('I63') || code.startsWith('I64');
+    };
+
+    const strokeCases = this.dataList.filter(row => {
+      if (isStroke(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (isStroke(row[`SDX${i}`])) return true;
+      }
+      return false;
+    });
+
+    const strokeRefer = strokeCases.filter(row => row.REFERIN?.length === 5).length;
+    const strokeNoRefer = strokeCases.filter(row => !row.REFERIN || row.REFERIN.length !== 5).length;
+    const strokeTotal = strokeCases.length;
+
+    // Calculate Stroke with rtPA by time intervals (cumulative)
+    const getRtpaHours = (row: any): number | null => {
+      for (let i = 1; i <= 20; i++) {
+        if (row[`PROC${i}`] === '9910') {
+          const dateIn = row[`DATEIN${i}`];
+          const timeIn = row[`TIMEIN${i}`];
+          
+          if (dateIn && row.DATEADM) {
+            const admitDateTime = dayjs(`${row.DATEADM} ${row.TIMEADM || '00:00'}`);
+            const procDateTime = dayjs(`${dateIn} ${timeIn || '00:00'}`);
+            const hoursDiff = procDateTime.diff(admitDateTime, 'hour', true);
+            
+            if (hoursDiff >= 0) {
+              return hoursDiff;
+            }
+          }
+          break;
+        }
+      }
+      return null;
+    };
+
+    const strokeRtpaWithin3h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours <= 3;
+    }).length;
+    const strokeRtpaWithin4h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours > 3 && hours <= 4;
+    }).length;
+    const strokeRtpaWithin6h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours > 4 && hours <= 6;
+    }).length;
+    const strokeRtpaWithin12h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours > 6 && hours <= 12;
+    }).length;
+    const strokeRtpaWithin24h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours > 12 && hours <= 24;
+    }).length;
+    const strokeRtpaOver24h = strokeCases.filter(row => {
+      const hours = getRtpaHours(row);
+      return hours !== null && hours > 24;
+    }).length;
+
+    // Calculate Appendicitis statistics (ICD K35-K37)
+    const isAppendicitis = (icd: string): boolean => {
+      if (!icd) return false;
+      const code = icd.trim().toUpperCase();
+      return code.startsWith('K35') || code.startsWith('K36') || code.startsWith('K37');
+    };
+
+    const appendicitisCases = this.dataList.filter(row => {
+      if (isAppendicitis(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (isAppendicitis(row[`SDX${i}`])) return true;
+      }
+      return false;
+    });
+
+    const hasSurgery = (row: any): { hasProc: boolean; timeCategory: string } => {
+      let hasProc = false;
+      let timeCategory = '';
+
+      for (let i = 1; i <= 20; i++) {
+        const proc = row[`PROC${i}`];
+        if (proc === '4701' || proc === '4709') {
+          hasProc = true;
+          
+          // Calculate time difference
+          const dateIn = row[`DATEIN${i}`];
+          const timeIn = row[`TIMEIN${i}`];
+          
+          if (dateIn && row.DATEADM) {
+            const admitDateTime = dayjs(`${row.DATEADM} ${row.TIMEADM || '00:00'}`);
+            const procDateTime = dayjs(`${dateIn} ${timeIn || '00:00'}`);
+            const hoursDiff = procDateTime.diff(admitDateTime, 'hour', true);
+            
+            if (hoursDiff >= 0 && hoursDiff <= 24) {
+              timeCategory = 'within24h';
+              break;
+            } else if (hoursDiff > 24 && hoursDiff <= 48) {
+              timeCategory = '24to48h';
+              break;
+            } else if (hoursDiff > 48) {
+              timeCategory = 'over48h';
+              break;
+            }
+          }
+        }
+      }
+      
+      return { hasProc, timeCategory };
+    };
+
+    const appendicitisTotal = appendicitisCases.length;
+    const appendicitisWithin24h = appendicitisCases.filter(row => {
+      const { timeCategory } = hasSurgery(row);
+      return timeCategory === 'within24h';
+    }).length;
+    const appendicitis24to48h = appendicitisCases.filter(row => {
+      const { timeCategory } = hasSurgery(row);
+      return timeCategory === '24to48h';
+    }).length;
+    const appendicitisOver48h = appendicitisCases.filter(row => {
+      const { timeCategory } = hasSurgery(row);
+      return timeCategory === 'over48h';
+    }).length;
+
+    // Calculate Delivery statistics
+    const isDelivery = (row: any): boolean => {
+      // Check PDX
+      if (row.PDX) {
+        const pdx = row.PDX.trim().toUpperCase();
+        if (pdx.startsWith('O80') || pdx.startsWith('O82') || 
+            (pdx.startsWith('O') && pdx >= 'O60' && pdx <= 'O84')) {
+          return true;
+        }
+      }
+      // Check SDX
+      for (let i = 1; i <= 13; i++) {
+        const sdx = row[`SDX${i}`];
+        if (sdx) {
+          const code = sdx.trim().toUpperCase();
+          if (code.startsWith('O80') || code.startsWith('O82') || 
+              (code.startsWith('O') && code >= 'O60' && code <= 'O84')) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const deliveryCases = this.dataList.filter(row => isDelivery(row));
+    const deliveryTotal = deliveryCases.length;
+    
+    const deliveryNormal = deliveryCases.filter(row => {
+      if (row.PDX?.startsWith('O80')) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (row[`SDX${i}`]?.startsWith('O80')) return true;
+      }
+      return false;
+    }).length;
+
+    const deliveryCesarean = deliveryCases.filter(row => {
+      if (row.PDX?.startsWith('O82')) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (row[`SDX${i}`]?.startsWith('O82')) return true;
+      }
+      return false;
+    }).length;
+
+    const deliveryOther = deliveryTotal - deliveryNormal - deliveryCesarean;
+
+    const deliveryDeath = deliveryCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+
     this.stats.set({
       totalCases,
       totalAdjrw,
       cmi: casesWithAdjrw > 0 ? totalAdjrw / casesWithAdjrw : 0,
+      totalAmount,
       totalPerCase: totalCases > 0 ? totalAmount / totalCases : 0,
       totalPerAdjrw: totalAdjrw > 0 ? totalAmountWithAdjrw / totalAdjrw : 0,
+      totalPerActlos: sumLosMinusLeaveday > 0 ? totalAmount / sumLosMinusLeaveday : 0,
+      sumLosMinusLeaveday,
+      avgActlosPerCase: totalCases > 0 ? sumLosMinusLeaveday / totalCases : 0,
+      percentExceedWtlos: totalCases > 0 ? (casesExceedWtlos / totalCases) * 100 : 0,
+      percentExceedOT: totalCases > 0 ? (casesExceedOT / totalCases) * 100 : 0,
+      strokeRefer,
+      strokeNoRefer,
+      strokeTotal,
+      strokeRtpaWithin3h,
+      strokeRtpaWithin4h,
+      strokeRtpaWithin6h,
+      strokeRtpaWithin12h,
+      strokeRtpaWithin24h,
+      strokeRtpaOver24h,
+      appendicitisTotal,
+      appendicitisWithin24h,
+      appendicitis24to48h,
+      appendicitisOver48h,
+      deliveryTotal,
+      deliveryNormal,
+      deliveryCesarean,
+      deliveryOther,
+      deliveryDeath,
     });
   }
 

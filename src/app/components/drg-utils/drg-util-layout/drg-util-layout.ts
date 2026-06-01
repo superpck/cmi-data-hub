@@ -79,6 +79,7 @@ export class DrgUtilLayout implements OnInit {
         { key: 'รายงาน', label: 'DRG Report', icon: 'analytics', href: 'https://cmi.moph.go.th/report/default/sumall' },
         { key: 'utility', label: 'DRG Utility', icon: 'troubleshoot', href: 'https://cmi.moph.go.th/util/default/download' },
         { key: 'drg-seeker', label: 'DRG Seeker', icon: 'search_insights', route: '/drg-util/drg-seeker' },
+        { key: 'upload', label: 'Upload CSV', icon: 'upload_file', route: '/drg-util/upload' }
       ],
     },
     {
@@ -96,7 +97,6 @@ export class DrgUtilLayout implements OnInit {
   betaMenu = {
     cmi: [
       { key: 'data-list', label: 'ทะเบียน IPD', icon: 'table', route: '/drg-util/data-list' },
-      { key: 'upload', label: 'Upload CSV', icon: 'upload_file', route: '/drg-util/upload' }
     ],
     ai: [
       { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ai-tools/ipd-summary' },
