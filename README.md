@@ -163,7 +163,9 @@ npm run build
 
 ## 📄 License
 
-Internal use only - Ministry of Public Health, Thailand
+MIT License - Copyright (c) 2026 Ministry of Public Health, Thailand
+
+See [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Version
 
