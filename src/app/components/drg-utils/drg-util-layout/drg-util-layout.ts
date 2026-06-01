@@ -27,7 +27,7 @@ export class DrgUtilLayout implements OnInit {
 
   config = signal(CONFIG);
   userInfo: any = signal({});
-  sidenavTheme = signal<PkSidenavTheme>((localStorage.getItem('sidenavTheme') as PkSidenavTheme) || 'orange');
+  sidenavTheme = signal<PkSidenavTheme>((localStorage.getItem('sidenavTheme') as PkSidenavTheme) || 'peacock-blue');
 
   // Theme options
   readonly themeOptions: { value: PkSidenavTheme; label: string }[] = [

@@ -166,6 +166,10 @@ export class UploadComponent implements OnInit, AfterViewInit {
   }
 
   async upload(item: any): Promise<void> {
+    const answer = this.alert.confirm('ยืนยันการอัปโหลดข้อมูลไปยัง CMI Data Hub?');
+    console.log('User confirmation:', answer);
+    if (!answer) return;
+    
     // alert('ยังไม่พร้อมใช้งาน');
     this.toastr.info('กำลังส่งข้อมูลไปยังระบบ CMI Data Hub...', 'โปรดรอ');
     // console.log('Uploading data for month:', item);

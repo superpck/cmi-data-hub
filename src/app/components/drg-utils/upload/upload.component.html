@@ -13,7 +13,7 @@
   </div>
   <div class="m-2">
     <div class="text-red-500 text-lg my-4 font-bold">
-      ระบบนี้ยังอยู่ในช่วงทดสอบ หากมีการ 'click เพื่อส่ง' ระบบจะบันทึกลงในตารางทดสอบเท่านั้น
+      ระบบนี้ยังอยู่ในช่วงทดสอบ หากมีการ click 'ส่งข้อมูลไปยัง CMI@MOPH' ระบบจะบันทึกลงในตารางทดสอบเท่านั้น
     </div>
     <p class="text-gray-700 text-sm">กรุณาเลือกแฟ้มข้อมูล csv ผู้ป่วยในที่ export จากโปรแกรม DRG Index เท่านั้น</p>
 
@@ -33,7 +33,7 @@
     <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
       <div class="flex items-start gap-2">
         <pk-icon iconSet="google" name="warning" [size]="18" class="text-yellow-500 shrink-0 mt-0.5" />
-        <span>ยังไม่ได้ส่งข้อมูลไปยัง CMI@MOPH กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนกด 'Click เพื่อส่ง'</span>
+        <span>ยังไม่ได้ส่งข้อมูลไปยัง CMI@MOPH กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนกดปุ่ม 'ส่งข้อมูลไปยัง CMI@MOPH' ที่ Tab 'ทะเบียนผู้ป่วยใน'</span>
       </div>
     </div>
     }
@@ -81,7 +81,7 @@
               <button (click)="upload({})" class="pk-btn pk-btn-sm"
                 [disabled]="loading() || uploadCompleted() || dataList.length === 0 ">
                 <pk-icon iconSet="google" name="upload" [size]="16"></pk-icon>
-                {{ uploadCompleted() ? 'ส่งแล้ว' : 'Click เพื่อส่ง' }}
+                {{ uploadCompleted() ? 'ส่งแล้ว' : 'ส่งข้อมูลไปยัง CMI@MOPH' }}
               </button>
             </div>
             <div class="overflow-auto">
