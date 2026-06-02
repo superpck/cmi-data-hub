@@ -134,6 +134,13 @@ export class UploadComponent implements OnInit, AfterViewInit {
     deliverySingleStillbirth: 0,
     deliveryTwinsBothLive: 0,
     deliveryTwinsOneLiveOneStillbirth: 0,
+    deliveryTotalAmount: 0,
+    deliveryTotalAdjrw: 0,
+    deliveryAvgLos: 0,
+    deliveryAvgAmount: 0,
+    deliveryAmountPerAdjrw: 0,
+    deliveryDeathRate: 0,
+    deliveryCmi: 0,
     maternalDeath: 0,
     sepsisTotal: 0,
     sepsisDeath: 0,
@@ -788,6 +795,18 @@ export class UploadComponent implements OnInit, AfterViewInit {
       return false;
     }).length;
 
+    // Calculate additional Delivery statistics
+    const deliveryTotalAmount = deliveryCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const deliveryTotalAdjrw = deliveryCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const deliveryTotalLos = deliveryCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const deliveryAvgLos = deliveryTotal > 0 ? deliveryTotalLos / deliveryTotal : 0;
+    const deliveryAvgAmount = deliveryTotal > 0 ? deliveryTotalAmount / deliveryTotal : 0;
+    const deliveryAmountPerAdjrw = deliveryTotalAdjrw > 0 ? deliveryTotalAmount / deliveryTotalAdjrw : 0;
+    const deliveryDeathRate = deliveryTotal > 0 ? (deliveryDeath / deliveryTotal) * 100 : 0;
+    
+    const deliveryCasesWithAdjrw = deliveryCases.filter(row => +row.ADJRW > 0).length;
+    const deliveryCmi = deliveryCasesWithAdjrw > 0 ? deliveryTotalAdjrw / deliveryCasesWithAdjrw : 0;
+
     // Calculate Maternal Death statistics
     // ICD: O80-O86, O95, O721, O151, O881, O85 AND DISCHT in (8, 9)
     const maternalDeath = this.dataList.filter(row => {
@@ -1065,6 +1084,13 @@ export class UploadComponent implements OnInit, AfterViewInit {
       deliverySingleStillbirth,
       deliveryTwinsBothLive,
       deliveryTwinsOneLiveOneStillbirth,
+      deliveryTotalAmount,
+      deliveryTotalAdjrw,
+      deliveryAvgLos,
+      deliveryAvgAmount,
+      deliveryAmountPerAdjrw,
+      deliveryDeathRate,
+      deliveryCmi,
       maternalDeath,
       sepsisTotal,
       sepsisDeath,
