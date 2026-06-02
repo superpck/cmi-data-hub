@@ -8,7 +8,7 @@
 <div class="pk-card my-2 pk-font-sarabun">
   <div class="font-bold text-blue-600 flex items-center gap-2 py-1 px-5 bg-slate-100"
     style="border-bottom: 1px solid #ddd;">
-    <pk-icon name="upload" [size]="18" />
+    <pk-icon iconSet="google" name="upload" [size]="18" />
     <span class="text-lg">Upload ข้อมูลผู้ป่วยในไปยัง CMI@MOPH</span>
   </div>
   <div class="m-2">
@@ -16,24 +16,69 @@
       ระบบนี้ยังอยู่ในช่วงทดสอบ หากมีการ click 'ส่งข้อมูลไปยัง CMI@MOPH' ระบบจะบันทึกลงในตารางทดสอบเท่านั้น
     </div>
     <p class="text-gray-700 text-sm">กรุณาเลือกแฟ้มข้อมูล csv ผู้ป่วยในที่ export จากโปรแกรม DRG Index เท่านั้น</p>
+    <p class="text-blue-600 text-sm mt-1">
+      <pk-icon iconSet="google" name="info" [size]="14" class="inline" />
+      สามารถเลือกหลายไฟล์พร้อมกันได้ (กด Ctrl/Cmd + Click) หรือใช้ปุ่ม "อ่านไฟล์เพิ่ม" เพื่อเพิ่มข้อมูลจากไฟล์อื่น
+    </p>
 
-    <div class="flex items-center gap-4 mt-2">
+    <div class="flex items-center gap-4 mt-2 flex-wrap">
       <label for="file-upload" class="cursor-pointer">
-        <input id="file-upload" type="file" accept=".csv" (change)="fileUpload($event)" [disabled]="loading()"
+        <input id="file-upload" type="file" accept=".csv" multiple (change)="fileUpload($event)" [disabled]="loading()"
           class="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-500" />
       </label>
+
+      <button (click)="triggerAppendUpload()" [disabled]="loading() || dataList.length === 0"
+        class="px-3 py-1 text-sm rounded border border-green-500 text-green-600 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+        <pk-icon iconSet="google" name="add" [size]="16" />
+        <span>อ่านไฟล์เพิ่ม</span>
+      </button>
+
+      <button (click)="clearData()" [disabled]="loading() || dataList.length === 0"
+        class="px-3 py-1 text-sm rounded border border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+        <pk-icon iconSet="google" name="delete" [size]="16" />
+        <span>Clear ข้อมูล</span>
+      </button>
+
+      <input #fileUploadInput type="file" accept=".csv" multiple (change)="fileUploadAppend($event)" class="hidden" />
+
       @if (loading()) {
       <span class="pk-spinner pk-spinner-sm pk-spinner-inline"></span>
       }
       @if (dataList.length) {
       <strong class="text-blue-600">{{ dataList.length | number }} recs.</strong>
       }
+      @if (duplicateANs().length > 0) {
+      <span class="text-orange-600 text-sm">
+        <pk-icon iconSet="google" name="warning" [size]="16" class="inline" />
+        ข้ามข้อมูลซ้ำ: {{ duplicateANs().length }} AN
+      </span>
+      }
     </div>
+
+    <!-- Duplicate AN Warning -->
+    @if (duplicateANs().length > 0) {
+    <div class="mt-4 p-3 bg-orange-50 border border-orange-300 rounded">
+      <div class="flex items-center gap-2">
+        <pk-icon iconSet="google" name="block" [size]="20" class="text-orange-600 shrink-0" />
+        <div class="flex-1">
+          <span class="text-sm font-semibold text-orange-800">
+            ข้ามข้อมูล AN ซ้ำ {{ duplicateANs().length }} รายการ ({{ duplicateANsTotal | number }} records ที่ไม่นำเข้า)
+          </span>
+          <button (click)="showDuplicateModal()"
+            class="ml-3 text-xs text-blue-600 hover:text-blue-800 underline font-medium">
+            ดูรายละเอียด
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
     @if(!uploadCompleted() && dataList.length > 0) {
     <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
       <div class="flex items-start gap-2">
         <pk-icon iconSet="google" name="warning" [size]="18" class="text-yellow-500 shrink-0 mt-0.5" />
-        <span>ยังไม่ได้ส่งข้อมูลไปยัง CMI@MOPH กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนกดปุ่ม 'ส่งข้อมูลไปยัง CMI@MOPH' ที่ Tab 'ทะเบียนผู้ป่วยใน'</span>
+        <span>ยังไม่ได้ส่งข้อมูลไปยัง CMI@MOPH กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนกดปุ่ม 'ส่งข้อมูลไปยัง CMI@MOPH' ที่
+          Tab 'ทะเบียนผู้ป่วยใน'</span>
       </div>
     </div>
     }
@@ -64,15 +109,6 @@
         <pk-tab-body>
           <!-- Detail Table -->
           <div class="overflow-x-auto p-2 border border-gray-200 rounded">
-            <!-- <div class="flex items-center justify-between mb-2"> -->
-            <!-- <strong>ทะเบียนรายชื่อจาก csv file</strong> -->
-            <!-- @if (sumMonthly.length) { -->
-            <!-- <button type="button" (click)="onExportAll()" [disabled]="loading()"
-          class="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
-          ส่งทั้งหมดออก excel
-        </button> -->
-            <!-- } -->
-            <!-- </div> -->
             <div class="flex justify-end mb-2 gap-2">
               <input type="text" [(ngModel)]="searchText" (input)="setPageDetail(1)"
                 placeholder="Search... hn, an, pdx, sdx, drg" [disabled]="loading() || dataList.length === 0 "
@@ -199,133 +235,152 @@
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 pk-font-bai-jamjuree">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">จำนวนราย</div>
-              <div class="text-2xl font-bold text-blue-600">{{ stats().totalCases | number }}</div>
-              <div class="text-xs text-red-500 mt-1">AdjRW=0: {{ stats().casesWithAdjrw0 | number }}</div>
-            </div>
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">Sum AdjRW</div>
-              <div class="text-2xl font-bold text-green-600">{{ stats().totalAdjrw | number:'.1-2' }}</div>
-            </div>
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">CMI</div>
-              <div class="text-2xl font-bold text-purple-600">{{ stats().cmi | number:'.1-4' }}</div>
-            </div>
-            <div class="bg-teal-50 border border-teal-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">รวมวันนอน</div>
-              <div class="text-2xl font-bold text-teal-600">{{ stats().sumLosMinusLeaveday | number:'.0-0' }} วัน</div>
-              <div class="text-xs text-gray-500 mt-1">LOS - LeaveDay</div>
-            </div>
-            <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">จำนวนเงินรวม (บาท)</div>
-              <div class="text-2xl font-bold text-cyan-600">{{ stats().totalAmount | number:'.0-0' }}</div>
-            </div>
-          </div>
+                <!-- Stats Cards -->
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 pk-font-bai-jamjuree">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">จำนวนราย</div>
+                    <div class="text-2xl font-bold text-blue-600">{{ stats().totalCases | number }}</div>
+                    <div class="text-xs text-red-500 mt-1">AdjRW=0: {{ stats().casesWithAdjrw0 | number }}</div>
+                  </div>
+                  <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">Sum AdjRW</div>
+                    <div class="text-2xl font-bold text-green-600">{{ stats().totalAdjrw | number:'.1-2' }}</div>
+                  </div>
+                  <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">CMI</div>
+                    <div class="text-2xl font-bold text-purple-600">{{ stats().cmi | number:'.1-4' }}</div>
+                  </div>
+                  <div class="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">รวมวันนอน</div>
+                    <div class="text-2xl font-bold text-teal-600">{{ stats().sumLosMinusLeaveday | number:'.0-0' }} วัน
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">LOS - LeaveDay</div>
+                  </div>
+                  <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">จำนวนเงินรวม (บาท)</div>
+                    <div class="text-2xl font-bold text-cyan-600">{{ stats().totalAmount | number:'.0-0' }}</div>
+                  </div>
+                </div>
 
-          <!-- LOS Statistics Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-4 pk-font-bai-jamjuree">
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
-              <div class="text-2xl font-bold text-orange-600">{{ stats().totalPerCase | number:'.0-0' }}</div>
-            </div>
-            <div class="bg-pink-50 border border-pink-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">บาท/AdjRW</div>
-              <div class="text-2xl font-bold text-pink-600">{{ stats().totalPerAdjrw | number:'.0-0' }}</div>
-            </div>
-            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">บาท/วัน</div>
-              <div class="text-2xl font-bold text-indigo-600">{{ stats().totalPerActlos | number:'.0-0' }}</div>
-            </div>
-            <div class="bg-teal-50 border border-teal-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
-              <div class="text-2xl font-bold text-teal-600">{{ stats().avgActlosPerCase | number:'.1-2' }}</div>
-            </div>
-            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">Active Bed</div>
-              <div class="text-2xl font-bold text-emerald-600">{{ stats().activeBed | number:'.1-2' }}</div>
-              <div class="text-xs text-gray-500 mt-1">{{ stats().totalDays | number }} วัน</div>
-            </div>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">% นอนเกินเกณฑ์มาตรฐาน</div>
-              <div class="text-2xl font-bold text-yellow-600">{{ stats().percentExceedWtlos | number:'.1-2' }}%</div>
-              <div class="text-xs text-gray-500 mt-1">LOS > Ceil(WtLOS)</div>
-            </div>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="text-xs text-gray-600 mb-1">% นอนเกิน OT</div>
-              <div class="text-2xl font-bold text-red-600">{{ stats().percentExceedOT | number:'.1-2' }}%</div>
-              <div class="text-xs text-gray-500 mt-1">LOS > Ceil(OT)</div>
-            </div>
-          </div>
+                <!-- LOS & Financial Statistics Cards -->
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 pk-font-bai-jamjuree">
+                  <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
+                    <div class="text-2xl font-bold text-orange-600">{{ stats().totalPerCase | number:'.0-0' }}</div>
+                  </div>
+                  <div class="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">บาท/AdjRW</div>
+                    <div class="text-2xl font-bold text-pink-600">{{ stats().totalPerAdjrw | number:'.0-0' }}</div>
+                  </div>
+                  <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">บาท/วัน</div>
+                    <div class="text-2xl font-bold text-indigo-600">{{ stats().totalPerActlos | number:'.0-0' }}</div>
+                  </div>
+                  <div class="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
+                    <div class="text-2xl font-bold text-teal-600">{{ stats().avgActlosPerCase | number:'.1-2' }}</div>
+                  </div>
+                  <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">Active Bed</div>
+                    <div class="text-2xl font-bold text-emerald-600">{{ stats().activeBed | number:'.1-2' }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ stats().totalDays | number }} วัน</div>
+                  </div>
+                </div>
 
-          <!-- Chart -->
-          <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-            <div #chartContainer style="width: 100%; height: 400px;"></div>
-          </div>
+                <!-- Quality & Outcome Statistics Cards -->
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 pk-font-bai-jamjuree">
+                  <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">% นอนเกินเกณฑ์มาตรฐาน</div>
+                    <div class="text-2xl font-bold text-yellow-600">{{ stats().percentExceedWtlos | number:'.1-2' }}%
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">LOS > Ceil(WtLOS)</div>
+                  </div>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">% นอนเกิน OT</div>
+                    <div class="text-2xl font-bold text-red-600">{{ stats().percentExceedOT | number:'.1-2' }}%</div>
+                    <div class="text-xs text-gray-500 mt-1">LOS > Ceil(OT)</div>
+                  </div>
+                  <div class="bg-rose-50 border border-rose-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">จำนวนผู้เสียชีวิต</div>
+                    <div class="text-2xl font-bold text-rose-600">{{ stats().totalDeath | number }}</div>
+                    <div class="text-xs text-gray-500 mt-1">DISCHT = 8 หรือ 9</div>
+                  </div>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">ร้อยละผู้เสียชีวิต</div>
+                    <div class="text-2xl font-bold text-red-600">{{ stats().totalDeathRate | number:'.1-2' }}%</div>
+                    <div class="text-xs text-gray-500 mt-1">Death Rate</div>
+                  </div>
+                </div>
 
-          <!-- ReferIn Chart -->
-          <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-            <div #chartContainer2 style="width: 100%; height: 500px;"></div>
-          </div>
+                <!-- Chart -->
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                  <div #chartContainer style="width: 100%; height: 400px;"></div>
+                </div>
 
-          <!-- Summary Table -->
-          <div class="mt-4 mb-3 overflow-x-auto p-2 border border-gray-200 rounded">
-            <div class="flex items-center justify-between mb-2">
-              <strong>สรุป DRG จาก csv file</strong>
-              @if (sumMonthly.length) {
-              <button type="button" (click)="onExportSummary()" [disabled]="loading()"
-                class="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
-                ส่งสรุปออก excel
-              </button>
-              }
-            </div>
+                <!-- ReferIn Chart -->
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                  <div #chartContainer2 style="width: 100%; height: 500px;"></div>
+                </div>
 
-            <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
-              <thead>
-                <tr class="bg-gray-100">
-                  <th class="border border-gray-300 px-3 py-1">Month</th>
-                  <th class="border border-gray-300 px-3 py-1">ราย</th>
-                  <th class="border border-gray-300 px-3 py-1">rw0</th>
-                  <th class="border border-gray-300 px-3 py-1">rw</th>
-                  <th class="border border-gray-300 px-3 py-1">adjrw</th>
-                  <th class="border border-gray-300 px-3 py-1">cmi</th>
-                  <th class="border border-gray-300 px-3 py-1">refer</th>
-                  <th class="border border-gray-300 px-3 py-1">cmi</th>
-                  <th class="border border-gray-300 px-3 py-1">dead</th>
-                  <th class="border border-gray-300 px-3 py-1">cmi</th>
-                  <th class="border border-gray-300 px-3 py-1">ส่งกระทรวง</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of sumMonthly; track item.monthly) {
-                <tr>
-                  <td class="border border-gray-300 px-2 py-1">{{ item.txtMonth }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cases | number }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
-                    (click)="showList('rw0', item.monthly)">{{ item.rw0 | number }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.rw | number:'.1-1' }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.adjrw | number:'.1-1' }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cmi | number:'.1-4' }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
-                    (click)="showList('refer', item.monthly)">{{ item.refer | number }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.referCMI | number:'.1-4' }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
-                    (click)="showList('dead', item.monthly)">{{ item.dead | number }}</td>
-                  <td class="border border-gray-300 px-2 py-1 text-right">{{ item.deadCMI | number:'.1-4' }}</td>
-                  <td class="p-1" nowrap>
-                    <div class="flex justify-center gap-1 table-actions">
-                      <button (click)="onExport(item.monthly, item.monthly)" [disabled]="loading()">
-                        <pk-icon iconSet="google" name="csv" [size]="16"></pk-icon> Export สรุป
-                      </button>
-                      <!-- <button (click)="upload(item)" [disabled]="loading() || uploadCompleted()">
+                <!-- Summary Table -->
+                <div class="mt-4 mb-3 overflow-x-auto p-2 border border-gray-200 rounded">
+                  <div class="flex items-center justify-between mb-2">
+                    <strong>สรุป DRG จาก csv file</strong>
+                    @if (sumMonthly.length) {
+                    <button type="button" (click)="onExportSummary()" [disabled]="loading()"
+                      class="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
+                      ส่งสรุปออก excel
+                    </button>
+                    }
+                  </div>
+
+                  <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
+                    <thead>
+                      <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-3 py-1">Month</th>
+                        <th class="border border-gray-300 px-3 py-1">ราย</th>
+                        <th class="border border-gray-300 px-3 py-1">rw0</th>
+                        <th class="border border-gray-300 px-3 py-1">rw</th>
+                        <th class="border border-gray-300 px-3 py-1">adjrw</th>
+                        <th class="border border-gray-300 px-3 py-1">cmi</th>
+                        <th class="border border-gray-300 px-3 py-1">refer</th>
+                        <th class="border border-gray-300 px-3 py-1">cmi</th>
+                        <th class="border border-gray-300 px-3 py-1">dead</th>
+                        <th class="border border-gray-300 px-3 py-1">cmi</th>
+                        <th class="border border-gray-300 px-3 py-1">ส่งกระทรวง</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (item of sumMonthly; track item.monthly) {
+                      <tr>
+                        <td class="border border-gray-300 px-2 py-1">{{ item.txtMonth }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cases | number }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+                          (click)="showList('rw0', item.monthly)">{{ item.rw0 | number }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.rw | number:'.1-1' }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.adjrw | number:'.1-1' }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.cmi | number:'.1-4' }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+                          (click)="showList('refer', item.monthly)">{{ item.refer | number }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.referCMI | number:'.1-4' }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right cursor-pointer text-blue-500"
+                          (click)="showList('dead', item.monthly)">{{ item.dead | number }}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right">{{ item.deadCMI | number:'.1-4' }}</td>
+                        <td class="p-1" nowrap>
+                          <div class="flex justify-center gap-1 table-actions">
+                            <button (click)="onExport(item.monthly, item.monthly)" [disabled]="loading()">
+                              <pk-icon iconSet="google" name="csv" [size]="16"></pk-icon> Export สรุป
+                            </button>
+                            <!-- <button (click)="upload(item)" [disabled]="loading() || uploadCompleted()">
                         <pk-icon iconSet="google" name="upload" [size]="16"></pk-icon>
                         {{ item.sent || uploadCompleted() ? 'ส่งแล้ว' : 'Click เพื่อส่ง' }}
                       </button> -->
-                    </div>
+                          </div>
 
-                    <!-- <button type="button" (click)="upload(item)" [disabled]="loading() || uploadCompleted()"
+                          <!-- <button type="button" (click)="upload(item)" [disabled]="loading() || uploadCompleted()"
                       class="px-2 py-0.5 text-xs rounded"
                       [class]="item.sent || uploadCompleted() ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
                       <span class="flex items-center gap-1">
@@ -333,12 +388,12 @@
                         {{ item.sent || uploadCompleted() ? 'ส่งแล้ว' : 'Click เพื่อส่ง' }}
                       </span>
                     </button> -->
-                  </td>
-                </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                      </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </pk-tab-body>
             </pk-tab>
 
@@ -347,171 +402,267 @@
                 <div class="flex items-center gap-2">
                   <span>Stroke</span>
                   @if (stats().strokeTotal > 0) {
-                    <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">{{ stats().strokeTotal }}</span>
+                  <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">{{ stats().strokeTotal }}</span>
                   }
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-              <!-- Stroke Statistics Card -->
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">Stroke (I60-I64)</div>
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">Refer</div>
-                    <div class="text-xl font-bold text-blue-600">{{ stats().strokeRefer | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">Non-Refer</div>
-                    <div class="text-xl font-bold text-sky-600">{{ stats().strokeNoRefer | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">รวม</div>
-                    <div class="text-xl font-bold text-cyan-600">{{ stats().strokeTotal | number }}</div>
-                  </div>
-                </div>
-                <div class="border-t border-blue-200 pt-3">
-                  <div class="text-xs font-medium text-gray-700 mb-2">Stroke + rtPA (9910) ตามช่วงเวลา</div>
-                  <div class="grid grid-cols-3 gap-2 text-center">
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">≤ 3 ชม.</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().strokeRtpaWithin3h | number }}</div>
+                <!-- Stroke Statistics Card -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">Stroke (I60-I64)</div>
+                  <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">Refer</div>
+                      <div class="text-xl font-bold text-blue-600">{{ stats().strokeRefer | number }}</div>
                     </div>
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">> 3-≤ 4 ชม.</div>
-                      <div class="text-lg font-bold text-teal-600">{{ stats().strokeRtpaWithin4h | number }}</div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">Non-Refer</div>
+                      <div class="text-xl font-bold text-sky-600">{{ stats().strokeNoRefer | number }}</div>
                     </div>
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">> 4-≤ 6 ชม.</div>
-                      <div class="text-lg font-bold text-cyan-600">{{ stats().strokeRtpaWithin6h | number }}</div>
-                    </div>
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">> 6-≤ 12 ชม.</div>
-                      <div class="text-lg font-bold text-blue-600">{{ stats().strokeRtpaWithin12h | number }}</div>
-                    </div>
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">> 12-≤ 24 ชม.</div>
-                      <div class="text-lg font-bold text-amber-600">{{ stats().strokeRtpaWithin24h | number }}</div>
-                    </div>
-                    <div class="bg-white rounded p-2">
-                      <div class="text-xs text-gray-600">> 24 ชม.</div>
-                      <div class="text-lg font-bold text-red-600">{{ stats().strokeRtpaOver24h | number }}</div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">รวม</div>
+                      <div class="text-xl font-bold text-cyan-600">{{ stats().strokeTotal | number }}</div>
                     </div>
                   </div>
-                </div>
+                  <div class="border-t border-blue-200 pt-3">
+                    <div class="text-xs font-medium text-gray-700 mb-2">Stroke + rtPA (9910) ตามช่วงเวลา</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">≤ 3 ชม.</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().strokeRtpaWithin3h | number }}</div>
+                      </div>
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">> 3-≤ 4 ชม.</div>
+                        <div class="text-lg font-bold text-teal-600">{{ stats().strokeRtpaWithin4h | number }}</div>
+                      </div>
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">> 4-≤ 6 ชม.</div>
+                        <div class="text-lg font-bold text-cyan-600">{{ stats().strokeRtpaWithin6h | number }}</div>
+                      </div>
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">> 6-≤ 12 ชม.</div>
+                        <div class="text-lg font-bold text-blue-600">{{ stats().strokeRtpaWithin12h | number }}</div>
+                      </div>
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">> 12-≤ 24 ชม.</div>
+                        <div class="text-lg font-bold text-amber-600">{{ stats().strokeRtpaWithin24h | number }}</div>
+                      </div>
+                      <div class="bg-white rounded p-2">
+                        <div class="text-xs text-gray-600">> 24 ชม.</div>
+                        <div class="text-lg font-bold text-red-600">{{ stats().strokeRtpaOver24h | number }}</div>
+                      </div>
+                    </div>
+                  </div>
 
-                <!-- Additional Stroke Statistics -->
-                <div class="border-t border-blue-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
-                  <div class="grid grid-cols-4 gap-3 mb-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                      <div class="text-lg font-bold text-red-700">{{ stats().strokeDeath | number }}</div>
-                      <div class="text-xs text-gray-500 mt-1">{{ stats().strokeDeathRate | number:'.1-2' }}%</div>
+                  <!-- Additional Stroke Statistics -->
+                  <div class="border-t border-blue-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
+                    <div class="grid grid-cols-4 gap-3 mb-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                        <div class="text-lg font-bold text-red-700">{{ stats().strokeDeath | number }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ stats().strokeDeathRate | number:'.1-2' }}%</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">CMI</div>
+                        <div class="text-lg font-bold text-purple-600">{{ stats().strokeCmi | number:'.4-4' }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
+                        <div class="text-lg font-bold text-teal-600">{{ stats().strokeAvgLos | number:'.1-2' }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().strokeAvgAmount | number:'.0-0' }}
+                        </div>
+                      </div>
                     </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">CMI</div>
-                      <div class="text-lg font-bold text-purple-600">{{ stats().strokeCmi | number:'.4-4' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
-                      <div class="text-lg font-bold text-teal-600">{{ stats().strokeAvgLos | number:'.1-2' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().strokeAvgAmount | number:'.0-0' }}</div>
-                    </div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
-                      <div class="text-lg font-bold text-cyan-600">{{ stats().strokeTotalAmount | number:'.0-0' }}</div>
-                      <div class="text-xs text-gray-500 mt-1">บาท</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
-                      <div class="text-lg font-bold text-indigo-600">{{ stats().strokeTotalAdjrw | number:'.2-2' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
-                      <div class="text-lg font-bold text-orange-600">{{ stats().strokeAmountPerAdjrw | number:'.0-0' }}</div>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
+                        <div class="text-lg font-bold text-cyan-600">{{ stats().strokeTotalAmount | number:'.0-0' }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">บาท</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
+                        <div class="text-lg font-bold text-indigo-600">{{ stats().strokeTotalAdjrw | number:'.2-2' }}
+                        </div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
+                        <div class="text-lg font-bold text-orange-600">{{ stats().strokeAmountPerAdjrw | number:'.0-0'
+                          }}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </pk-tab-body>
             </pk-tab>
+
+            @if (stats().amiTotal > 0) {
+            <pk-tab [active]="activeStatsTab() === 'ami'">
+              <pk-tab-title (tabClick)="activeStatsTab.set('ami')">
+                <div class="flex items-center gap-2">
+                  <span>AMI</span>
+                  @if (stats().amiTotal > 0) {
+                  <span class="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">{{ stats().amiTotal }}</span>
+                  }
+                </div>
+              </pk-tab-title>
+              <pk-tab-body>
+                <!-- AMI Statistics Card -->
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">AMI - Acute Myocardial Infarction (I21-I22)
+                  </div>
+
+                  <!-- Main Stats -->
+                  <div class="grid grid-cols-6 gap-3 mb-4">
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
+                      <div class="text-xl font-bold text-orange-600">{{ stats().amiTotal | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ได้รับ PCI</div>
+                      <div class="text-xl font-bold text-blue-600">{{ stats().amiWithPCI | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ได้รับ CABG</div>
+                      <div class="text-xl font-bold text-indigo-600">{{ stats().amiWithCABG | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">PCI/CABG ภายใน 24 ชม.</div>
+                      <div class="text-xl font-bold text-green-600">{{ stats().amiWithPciCabgWithin24h | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">Door-to-balloon proxy</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                      <div class="text-xl font-bold text-red-700">{{ stats().amiDeath | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">{{ stats().amiDeathRate | number:'.1-2' }}%</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">CMI</div>
+                      <div class="text-xl font-bold text-purple-600">{{ stats().amiCmi | number:'.4-4' }}</div>
+                      <div class="text-xs text-gray-500 mt-1">Adj RW</div>
+                    </div>
+                  </div>
+
+                  <!-- Additional Stats -->
+                  <div class="border-t border-orange-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลเพิ่มเติม</div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
+                        <div class="text-lg font-bold text-blue-600">{{ stats().amiAvgLos | number:'.1-2' }} วัน</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().amiAvgAmount | number:'.0-0' }} บาท
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Procedure Details -->
+                  <div class="border-t border-orange-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">รายละเอียด Procedures</div>
+                    <div class="bg-white rounded p-3 text-xs text-gray-600">
+                      <div class="mb-2">
+                        <strong>PCI:</strong> 3601, 3602, 3605-3607, 3609
+                      </div>
+                      <div>
+                        <strong>CABG:</strong> 3610-3619
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </pk-tab-body>
+            </pk-tab>
+            }
 
             <pk-tab [active]="activeStatsTab() === 'appendicitis'">
               <pk-tab-title (tabClick)="activeStatsTab.set('appendicitis')">
                 <div class="flex items-center gap-2">
                   <span>Appendicitis</span>
                   @if (stats().appendicitisTotal > 0) {
-                    <span class="px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full">{{ stats().appendicitisTotal }}</span>
+                  <span class="px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full">{{ stats().appendicitisTotal
+                    }}</span>
                   }
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-              <!-- Appendicitis Statistics Card -->
-              <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">Appendicitis (K35-K37) + ผ่าตัด (4701, 4709)</div>
-                <div class="grid grid-cols-4 gap-3">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">รวม</div>
-                    <div class="text-xl font-bold text-purple-600">{{ stats().appendicitisTotal | number }}</div>
+                <!-- Appendicitis Statistics Card -->
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">Appendicitis (K35-K37) + ผ่าตัด (4701, 4709)
                   </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">≤ 24 ชม.</div>
-                    <div class="text-xl font-bold text-green-600">{{ stats().appendicitisWithin24h | number }}</div>
+                  <div class="grid grid-cols-4 gap-3">
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">รวม</div>
+                      <div class="text-xl font-bold text-purple-600">{{ stats().appendicitisTotal | number }}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">≤ 24 ชม.</div>
+                      <div class="text-xl font-bold text-green-600">{{ stats().appendicitisWithin24h | number }}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">24-48 ชม.</div>
+                      <div class="text-xl font-bold text-amber-600">{{ stats().appendicitis24to48h | number }}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">> 48 ชม.</div>
+                      <div class="text-xl font-bold text-red-600">{{ stats().appendicitisOver48h | number }}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">24-48 ชม.</div>
-                    <div class="text-xl font-bold text-amber-600">{{ stats().appendicitis24to48h | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">> 48 ชม.</div>
-                    <div class="text-xl font-bold text-red-600">{{ stats().appendicitisOver48h | number }}</div>
-                  </div>
-                </div>
 
-                <!-- Additional Appendicitis Statistics -->
-                <div class="border-t border-purple-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
-                  <div class="grid grid-cols-4 gap-3 mb-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                      <div class="text-lg font-bold text-red-700">{{ stats().appendicitisDeath | number }}</div>
-                      <div class="text-xs text-gray-500 mt-1">{{ stats().appendicitisDeathRate | number:'.1-2' }}%</div>
+                  <!-- Additional Appendicitis Statistics -->
+                  <div class="border-t border-purple-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
+                    <div class="grid grid-cols-4 gap-3 mb-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                        <div class="text-lg font-bold text-red-700">{{ stats().appendicitisDeath | number }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ stats().appendicitisDeathRate | number:'.1-2' }}%
+                        </div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">CMI</div>
+                        <div class="text-lg font-bold text-purple-600">{{ stats().appendicitisCmi | number:'.4-4' }}
+                        </div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
+                        <div class="text-lg font-bold text-teal-600">{{ stats().appendicitisAvgLos | number:'.1-2' }}
+                        </div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().appendicitisAvgAmount | number:'.0-0'
+                          }}</div>
+                      </div>
                     </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">CMI</div>
-                      <div class="text-lg font-bold text-purple-600">{{ stats().appendicitisCmi | number:'.4-4' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
-                      <div class="text-lg font-bold text-teal-600">{{ stats().appendicitisAvgLos | number:'.1-2' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().appendicitisAvgAmount | number:'.0-0' }}</div>
-                    </div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
-                      <div class="text-lg font-bold text-cyan-600">{{ stats().appendicitisTotalAmount | number:'.0-0' }}</div>
-                      <div class="text-xs text-gray-500 mt-1">บาท</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
-                      <div class="text-lg font-bold text-indigo-600">{{ stats().appendicitisTotalAdjrw | number:'.2-2' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
-                      <div class="text-lg font-bold text-orange-600">{{ stats().appendicitisAmountPerAdjrw | number:'.0-0' }}</div>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
+                        <div class="text-lg font-bold text-cyan-600">{{ stats().appendicitisTotalAmount | number:'.0-0'
+                          }}</div>
+                        <div class="text-xs text-gray-500 mt-1">บาท</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
+                        <div class="text-lg font-bold text-indigo-600">{{ stats().appendicitisTotalAdjrw | number:'.2-2'
+                          }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
+                        <div class="text-lg font-bold text-orange-600">{{ stats().appendicitisAmountPerAdjrw |
+                          number:'.0-0' }}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </pk-tab-body>
             </pk-tab>
 
@@ -521,120 +672,129 @@
                 <div class="flex items-center gap-2">
                   <span>การคลอด</span>
                   @if (stats().deliveryTotal > 0) {
-                    <span class="px-2 py-0.5 bg-pink-500 text-white text-xs rounded-full">{{ stats().deliveryTotal }}</span>
+                  <span class="px-2 py-0.5 bg-pink-500 text-white text-xs rounded-full">{{ stats().deliveryTotal
+                    }}</span>
                   }
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-              <!-- Delivery Statistics Card -->
-              <div class="bg-pink-50 border border-pink-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">การคลอด (O60-O84)</div>
-                <div class="grid grid-cols-5 gap-3 mb-4">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">รวม</div>
-                    <div class="text-xl font-bold text-pink-600">{{ stats().deliveryTotal | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">คลอดปกติ (O80)</div>
-                    <div class="text-xl font-bold text-green-600">{{ stats().deliveryNormal | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ผ่าคลอด (O82)</div>
-                    <div class="text-xl font-bold text-blue-600">{{ stats().deliveryCesarean | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ผ่าคลอดฉุกเฉิน (O82.1)</div>
-                    <div class="text-xl font-bold text-orange-600">{{ stats().deliveryCesareanEmergency | number }}</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">อื่นๆ</div>
-                    <div class="text-xl font-bold text-purple-600">{{ stats().deliveryOther | number }}</div>
-                  </div>
-                </div>
-                
-                <!-- Delivery Outcome (Z37.x) -->
-                <div class="border-t border-pink-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ผลลัพธ์การคลอด (Z37) - นับจำนวนแม่</div>
-                  <div class="grid grid-cols-4 gap-3">
+                <!-- Delivery Statistics Card -->
+                <div class="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">การคลอด (O60-O84)</div>
+                  <div class="grid grid-cols-5 gap-3 mb-4">
                     <div>
-                      <div class="text-xs text-gray-600 mb-1">คลอดชีพเดี่ยว (Z37.0)</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().deliverySingleLive | number }}</div>
+                      <div class="text-xs text-gray-600 mb-1">รวม</div>
+                      <div class="text-xl font-bold text-pink-600">{{ stats().deliveryTotal | number }}</div>
                     </div>
                     <div>
-                      <div class="text-xs text-gray-600 mb-1">ทารกตายคลอดเดี่ยว (Z37.1)</div>
-                      <div class="text-lg font-bold text-gray-600">{{ stats().deliverySingleStillbirth | number }}</div>
+                      <div class="text-xs text-gray-600 mb-1">คลอดปกติ (O80)</div>
+                      <div class="text-xl font-bold text-green-600">{{ stats().deliveryNormal | number }}</div>
                     </div>
                     <div>
-                      <div class="text-xs text-gray-600 mb-1">แฝดสองรอดชีพทั้งคู่ (Z37.2)</div>
-                      <div class="text-lg font-bold text-blue-600">{{ stats().deliveryTwinsBothLive | number }}</div>
+                      <div class="text-xs text-gray-600 mb-1">ผ่าคลอด (O82)</div>
+                      <div class="text-xl font-bold text-blue-600">{{ stats().deliveryCesarean | number }}</div>
                     </div>
                     <div>
-                      <div class="text-xs text-gray-600 mb-1">แฝดรอดชีพ 1 ตายคลอด 1 (Z37.3)</div>
-                      <div class="text-lg font-bold text-yellow-600">{{ stats().deliveryTwinsOneLiveOneStillbirth | number }}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Maternal Death -->
-                @if (stats().maternalDeath > 0) {
-                <div class="border-t border-pink-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">อัตราการตายของมารดา (Maternal Death)</div>
-                  <div class="flex items-center gap-2 bg-red-100 p-3 rounded">
-                    <div class="grow">
-                      <div class="text-xs text-gray-600 mb-1">
-                        แม่เสียชีวิต (O80-O86, O95, O72.1, O15.1, O88.1, O85 + DISCHT 8,9)
-                      </div>
-                      <div class="text-2xl font-bold text-red-600">{{ stats().maternalDeath | number }} ราย</div>
-                    </div>
-                    <div class="text-right">
-                      <div class="text-xs text-gray-600 mb-1">อัตรา (ต่อการคลอด 1,000 ราย)</div>
-                      <div class="text-xl font-bold text-red-700">
-                        {{ stats().deliveryTotal > 0 ? ((stats().maternalDeath / stats().deliveryTotal) * 1000).toFixed(2) : '0.00' }}
+                      <div class="text-xs text-gray-600 mb-1">ผ่าคลอดฉุกเฉิน (O82.1)</div>
+                      <div class="text-xl font-bold text-orange-600">{{ stats().deliveryCesareanEmergency | number }}
                       </div>
                     </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">อื่นๆ</div>
+                      <div class="text-xl font-bold text-purple-600">{{ stats().deliveryOther | number }}</div>
+                    </div>
                   </div>
-                </div>
-                }
 
-                <!-- Additional Delivery Statistics -->
-                <div class="border-t border-pink-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
-                  <div class="grid grid-cols-4 gap-3 mb-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                      <div class="text-lg font-bold text-red-700">{{ stats().deliveryDeath | number }}</div>
-                      <div class="text-xs text-gray-500 mt-1">{{ stats().deliveryDeathRate | number:'.1-2' }}%</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">CMI</div>
-                      <div class="text-lg font-bold text-purple-600">{{ stats().deliveryCmi | number:'.4-4' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
-                      <div class="text-lg font-bold text-teal-600">{{ stats().deliveryAvgLos | number:'.1-2' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().deliveryAvgAmount | number:'.0-0' }}</div>
+                  <!-- Delivery Outcome (Z37.x) -->
+                  <div class="border-t border-pink-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ผลลัพธ์การคลอด (Z37) - นับจำนวนแม่</div>
+                    <div class="grid grid-cols-4 gap-3">
+                      <div>
+                        <div class="text-xs text-gray-600 mb-1">คลอดชีพเดี่ยว (Z37.0)</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().deliverySingleLive | number }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-600 mb-1">ทารกตายคลอดเดี่ยว (Z37.1)</div>
+                        <div class="text-lg font-bold text-gray-600">{{ stats().deliverySingleStillbirth | number }}
+                        </div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-600 mb-1">แฝดสองรอดชีพทั้งคู่ (Z37.2)</div>
+                        <div class="text-lg font-bold text-blue-600">{{ stats().deliveryTwinsBothLive | number }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-600 mb-1">แฝดรอดชีพ 1 ตายคลอด 1 (Z37.3)</div>
+                        <div class="text-lg font-bold text-yellow-600">{{ stats().deliveryTwinsOneLiveOneStillbirth |
+                          number }}</div>
+                      </div>
                     </div>
                   </div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
-                      <div class="text-lg font-bold text-cyan-600">{{ stats().deliveryTotalAmount | number:'.0-0' }}</div>
-                      <div class="text-xs text-gray-500 mt-1">บาท</div>
+
+                  <!-- Maternal Death -->
+                  @if (stats().maternalDeath > 0) {
+                  <div class="border-t border-pink-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">อัตราการตายของมารดา (Maternal Death)</div>
+                    <div class="flex items-center gap-2 bg-red-100 p-3 rounded">
+                      <div class="grow">
+                        <div class="text-xs text-gray-600 mb-1">
+                          แม่เสียชีวิต (O80-O86, O95, O72.1, O15.1, O88.1, O85 + DISCHT 8,9)
+                        </div>
+                        <div class="text-2xl font-bold text-red-600">{{ stats().maternalDeath | number }} ราย</div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-xs text-gray-600 mb-1">อัตรา (ต่อการคลอด 1,000 ราย)</div>
+                        <div class="text-xl font-bold text-red-700">
+                          {{ stats().deliveryTotal > 0 ? ((stats().maternalDeath / stats().deliveryTotal) *
+                          1000).toFixed(2) : '0.00' }}
+                        </div>
+                      </div>
                     </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
-                      <div class="text-lg font-bold text-indigo-600">{{ stats().deliveryTotalAdjrw | number:'.2-2' }}</div>
+                  </div>
+                  }
+
+                  <!-- Additional Delivery Statistics -->
+                  <div class="border-t border-pink-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลทางคลินิกและค่าใช้จ่าย</div>
+                    <div class="grid grid-cols-4 gap-3 mb-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                        <div class="text-lg font-bold text-red-700">{{ stats().deliveryDeath | number }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ stats().deliveryDeathRate | number:'.1-2' }}%</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">CMI</div>
+                        <div class="text-lg font-bold text-purple-600">{{ stats().deliveryCmi | number:'.4-4' }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">วัน/ราย</div>
+                        <div class="text-lg font-bold text-teal-600">{{ stats().deliveryAvgLos | number:'.1-2' }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/ราย</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().deliveryAvgAmount | number:'.0-0' }}
+                        </div>
+                      </div>
                     </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
-                      <div class="text-lg font-bold text-orange-600">{{ stats().deliveryAmountPerAdjrw | number:'.0-0' }}</div>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
+                        <div class="text-lg font-bold text-cyan-600">{{ stats().deliveryTotalAmount | number:'.0-0' }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">บาท</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
+                        <div class="text-lg font-bold text-indigo-600">{{ stats().deliveryTotalAdjrw | number:'.2-2' }}
+                        </div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">บาท/Adj RW</div>
+                        <div class="text-lg font-bold text-orange-600">{{ stats().deliveryAmountPerAdjrw | number:'.0-0'
+                          }}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </pk-tab-body>
             </pk-tab>
             }
@@ -645,149 +805,70 @@
                 <div class="flex items-center gap-2">
                   <span>Sepsis</span>
                   @if (stats().sepsisTotal > 0) {
-                    <span class="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">{{ stats().sepsisTotal }}</span>
+                  <span class="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">{{ stats().sepsisTotal }}</span>
                   }
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-              <!-- Sepsis Statistics Card -->
-              <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">Sepsis (A40, A41)</div>
-                
-                <!-- Main Stats -->
-                <div class="grid grid-cols-6 gap-3 mb-4">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
-                    <div class="text-xl font-bold text-red-600">{{ stats().sepsisTotal | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                    <div class="text-xl font-bold text-red-700">{{ stats().sepsisDeath | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">อัตราเสียชีวิต</div>
-                    <div class="text-xl font-bold text-red-800">{{ stats().sepsisDeathRate | number:'.1-2' }}%</div>
-                    <div class="text-xs text-gray-500 mt-1">Death Rate</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
-                    <div class="text-xl font-bold text-blue-600">{{ stats().sepsisAvgLos | number:'.1-2' }}</div>
-                    <div class="text-xs text-gray-500 mt-1">วัน</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
-                    <div class="text-xl font-bold text-green-600">{{ stats().sepsisAvgAmount | number:'.0-0' }}</div>
-                    <div class="text-xs text-gray-500 mt-1">บาท/ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">CMI</div>
-                    <div class="text-xl font-bold text-purple-600">{{ stats().sepsisCmi | number:'.4-4' }}</div>
-                    <div class="text-xs text-gray-500 mt-1">Adj RW</div>
-                  </div>
-                </div>
+                <!-- Sepsis Statistics Card -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">Sepsis (A40, A41)</div>
 
-                <!-- Summary Stats -->
-                <div class="border-t border-red-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">สรุปรวม</div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">LOS รวม</div>
-                      <div class="text-lg font-bold text-blue-600">{{ stats().sepsisTotalLos | number }} วัน</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().sepsisTotalAmount | number:'.0-0' }} บาท</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
-                      <div class="text-lg font-bold text-purple-600">{{ stats().sepsisTotalAdjrw | number:'.2-2' }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </pk-tab-body>
-            </pk-tab>
-            }
-
-            @if (stats().amiTotal > 0) {
-            <pk-tab [active]="activeStatsTab() === 'ami'">
-              <pk-tab-title (tabClick)="activeStatsTab.set('ami')">
-                <div class="flex items-center gap-2">
-                  <span>AMI</span>
-                  @if (stats().amiTotal > 0) {
-                    <span class="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">{{ stats().amiTotal }}</span>
-                  }
-                </div>
-              </pk-tab-title>
-              <pk-tab-body>
-              <!-- AMI Statistics Card -->
-              <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">AMI - Acute Myocardial Infarction (I21-I22)</div>
-                
-                <!-- Main Stats -->
-                <div class="grid grid-cols-6 gap-3 mb-4">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
-                    <div class="text-xl font-bold text-orange-600">{{ stats().amiTotal | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ได้รับ PCI</div>
-                    <div class="text-xl font-bold text-blue-600">{{ stats().amiWithPCI | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ได้รับ CABG</div>
-                    <div class="text-xl font-bold text-indigo-600">{{ stats().amiWithCABG | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">PCI/CABG ภายใน 24 ชม.</div>
-                    <div class="text-xl font-bold text-green-600">{{ stats().amiWithPciCabgWithin24h | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">Door-to-balloon proxy</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                    <div class="text-xl font-bold text-red-700">{{ stats().amiDeath | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">{{ stats().amiDeathRate | number:'.1-2' }}%</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">CMI</div>
-                    <div class="text-xl font-bold text-purple-600">{{ stats().amiCmi | number:'.4-4' }}</div>
-                    <div class="text-xs text-gray-500 mt-1">Adj RW</div>
-                  </div>
-                </div>
-
-                <!-- Additional Stats -->
-                <div class="border-t border-orange-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลเพิ่มเติม</div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
-                      <div class="text-lg font-bold text-blue-600">{{ stats().amiAvgLos | number:'.1-2' }} วัน</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().amiAvgAmount | number:'.0-0' }} บาท</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Procedure Details -->
-                <div class="border-t border-orange-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">รายละเอียด Procedures</div>
-                  <div class="bg-white rounded p-3 text-xs text-gray-600">
-                    <div class="mb-2">
-                      <strong>PCI:</strong> 3601, 3602, 3605-3607, 3609
+                  <!-- Main Stats -->
+                  <div class="grid grid-cols-6 gap-3 mb-4">
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
+                      <div class="text-xl font-bold text-red-600">{{ stats().sepsisTotal | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
                     </div>
                     <div>
-                      <strong>CABG:</strong> 3610-3619
+                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                      <div class="text-xl font-bold text-red-700">{{ stats().sepsisDeath | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">อัตราเสียชีวิต</div>
+                      <div class="text-xl font-bold text-red-800">{{ stats().sepsisDeathRate | number:'.1-2' }}%</div>
+                      <div class="text-xs text-gray-500 mt-1">Death Rate</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
+                      <div class="text-xl font-bold text-blue-600">{{ stats().sepsisAvgLos | number:'.1-2' }}</div>
+                      <div class="text-xs text-gray-500 mt-1">วัน</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
+                      <div class="text-xl font-bold text-green-600">{{ stats().sepsisAvgAmount | number:'.0-0' }}</div>
+                      <div class="text-xs text-gray-500 mt-1">บาท/ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">CMI</div>
+                      <div class="text-xl font-bold text-purple-600">{{ stats().sepsisCmi | number:'.4-4' }}</div>
+                      <div class="text-xs text-gray-500 mt-1">Adj RW</div>
+                    </div>
+                  </div>
+
+                  <!-- Summary Stats -->
+                  <div class="border-t border-red-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">สรุปรวม</div>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">LOS รวม</div>
+                        <div class="text-lg font-bold text-blue-600">{{ stats().sepsisTotalLos | number }} วัน</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายรวม</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().sepsisTotalAmount | number:'.0-0' }}
+                          บาท</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">Adj RW รวม</div>
+                        <div class="text-lg font-bold text-purple-600">{{ stats().sepsisTotalAdjrw | number:'.2-2' }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </pk-tab-body>
             </pk-tab>
             }
@@ -797,81 +878,84 @@
                 <div class="flex items-center gap-2">
                   <span>Hip Fracture</span>
                   @if (stats().hipFxTotal > 0) {
-                    <span class="px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full">{{ stats().hipFxTotal }}</span>
+                  <span class="px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full">{{ stats().hipFxTotal
+                    }}</span>
                   }
                 </div>
               </pk-tab-title>
               <pk-tab-body>
-              <!-- Hip Fracture Statistics Card -->
-              <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div class="text-sm font-semibold text-gray-700 mb-3">Hip Fracture (S720-S722) ในผู้สูงอายุ (≥60 ปี)</div>
-                
-                <!-- Main Stats -->
-                <div class="grid grid-cols-6 gap-3 mb-4">
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
-                    <div class="text-xl font-bold text-purple-600">{{ stats().hipFxTotal | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">อายุ ≥60 ปี</div>
+                <!-- Hip Fracture Statistics Card -->
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-3">Hip Fracture (S720-S722) ในผู้สูงอายุ (≥60 ปี)
                   </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ได้รับผ่าตัด</div>
-                    <div class="text-xl font-bold text-blue-600">{{ stats().hipFxWithSurgery | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">ราย</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ผ่าตัดภายใน 48 ชม.</div>
-                    <div class="text-xl font-bold text-green-600">{{ stats().hipFxSurgeryWithin48h | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">≤48h</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ผ่าตัด 48-72 ชม.</div>
-                    <div class="text-xl font-bold text-yellow-600">{{ stats().hipFxSurgeryWithin72h | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">48-72h</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">ผ่าตัดหลัง 72 ชม.</div>
-                    <div class="text-xl font-bold text-orange-600">{{ stats().hipFxSurgeryAfter72h | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">>72h</div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
-                    <div class="text-xl font-bold text-red-700">{{ stats().hipFxDeath | number }}</div>
-                    <div class="text-xs text-gray-500 mt-1">{{ stats().hipFxDeathRate | number:'.1-2' }}%</div>
-                  </div>
-                </div>
 
-                <!-- Additional Stats -->
-                <div class="border-t border-purple-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลเพิ่มเติม</div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">CMI</div>
-                      <div class="text-lg font-bold text-purple-600">{{ stats().hipFxCmi | number:'.4-4' }}</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
-                      <div class="text-lg font-bold text-blue-600">{{ stats().hipFxAvgLos | number:'.1-2' }} วัน</div>
-                    </div>
-                    <div class="bg-white rounded p-3">
-                      <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
-                      <div class="text-lg font-bold text-green-600">{{ stats().hipFxAvgAmount | number:'.0-0' }} บาท</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Procedure Details -->
-                <div class="border-t border-purple-200 pt-3 mt-3">
-                  <div class="text-xs font-semibold text-gray-600 mb-2">รายละเอียด Surgery Procedures</div>
-                  <div class="bg-white rounded p-3 text-xs text-gray-600">
-                    <div class="mb-2">
-                      <strong>ICD Codes:</strong> S720, S721, S722 (Fracture of femur)
+                  <!-- Main Stats -->
+                  <div class="grid grid-cols-6 gap-3 mb-4">
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">จำนวนทั้งหมด</div>
+                      <div class="text-xl font-bold text-purple-600">{{ stats().hipFxTotal | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">อายุ ≥60 ปี</div>
                     </div>
                     <div>
-                      <strong>Surgery Procedures:</strong> 8151, 8152, 7935, 7805
+                      <div class="text-xs text-gray-600 mb-1">ได้รับผ่าตัด</div>
+                      <div class="text-xl font-bold text-blue-600">{{ stats().hipFxWithSurgery | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">ราย</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ผ่าตัดภายใน 48 ชม.</div>
+                      <div class="text-xl font-bold text-green-600">{{ stats().hipFxSurgeryWithin48h | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">≤48h</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ผ่าตัด 48-72 ชม.</div>
+                      <div class="text-xl font-bold text-yellow-600">{{ stats().hipFxSurgeryWithin72h | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">48-72h</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">ผ่าตัดหลัง 72 ชม.</div>
+                      <div class="text-xl font-bold text-orange-600">{{ stats().hipFxSurgeryAfter72h | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">>72h</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-600 mb-1">เสียชีวิต</div>
+                      <div class="text-xl font-bold text-red-700">{{ stats().hipFxDeath | number }}</div>
+                      <div class="text-xs text-gray-500 mt-1">{{ stats().hipFxDeathRate | number:'.1-2' }}%</div>
+                    </div>
+                  </div>
+
+                  <!-- Additional Stats -->
+                  <div class="border-t border-purple-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">ข้อมูลเพิ่มเติม</div>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">CMI</div>
+                        <div class="text-lg font-bold text-purple-600">{{ stats().hipFxCmi | number:'.4-4' }}</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">LOS เฉลี่ย</div>
+                        <div class="text-lg font-bold text-blue-600">{{ stats().hipFxAvgLos | number:'.1-2' }} วัน</div>
+                      </div>
+                      <div class="bg-white rounded p-3">
+                        <div class="text-xs text-gray-600 mb-1">ค่าใช้จ่ายเฉลี่ย</div>
+                        <div class="text-lg font-bold text-green-600">{{ stats().hipFxAvgAmount | number:'.0-0' }} บาท
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Procedure Details -->
+                  <div class="border-t border-purple-200 pt-3 mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-2">รายละเอียด Surgery Procedures</div>
+                    <div class="bg-white rounded p-3 text-xs text-gray-600">
+                      <div class="mb-2">
+                        <strong>ICD Codes:</strong> S720, S721, S722 (Fracture of femur)
+                      </div>
+                      <div>
+                        <strong>Surgery Procedures:</strong> 8151, 8152, 7935, 7805
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </pk-tab-body>
             </pk-tab>
           </pk-tabs>
@@ -966,6 +1050,59 @@
     </button>
     }
     <button type="button" (click)="modalList.set(false)"
+      class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400">ปิด</button>
+  </pk-modal-footer>
+</pk-modal>
+
+<!-- Duplicate AN Modal -->
+<pk-modal [openModal]="modalDuplicateAN()" [size]="'lg'" [closeAny]="true" [closeMarker]="true"
+  (onClose)="modalDuplicateAN.set(false)">
+  <pk-modal-header>
+    <h3 class="text-lg font-semibold text-gray-800">รายการ AN ซ้ำที่ข้าม (ไม่นำเข้าระบบ)</h3>
+  </pk-modal-header>
+  <pk-modal-body>
+    <div class="mb-3 p-3 bg-orange-50 border border-orange-200 rounded text-sm">
+      <div class="flex items-center gap-2 mb-2">
+        <pk-icon iconSet="google" name="info" [size]="18" class="text-orange-600" />
+        <span class="text-orange-800 font-medium">
+          พบ AN ซ้ำทั้งหมด {{ duplicateANs().length }} รายการ ข้ามไป {{ duplicateANsTotal | number }} records
+        </span>
+      </div>
+      <div class="text-xs text-orange-700">
+        ข้อมูลเหล่านี้ไม่ถูกนำเข้าเนื่องจากมี AN ซ้ำกับข้อมูลที่โหลดก่อนหน้า
+      </div>
+    </div>
+
+    <div class="mb-3 flex justify-end">
+      <pk-export-button [data]="duplicateANs()" [formats]="['csv', 'xlsx']" filename="duplicate_ans" />
+    </div>
+
+    <div class="overflow-auto max-h-96">
+      <table class="min-w-full border border-gray-200">
+        <thead class="bg-gray-100 sticky top-0">
+          <tr>
+            <th class="border border-gray-300 px-3 py-2 text-left text-xs font-semibold text-gray-700">#</th>
+            <th class="border border-gray-300 px-3 py-2 text-left text-xs font-semibold text-gray-700">AN</th>
+            <th class="border border-gray-300 px-3 py-2 text-right text-xs font-semibold text-gray-700">จำนวน Records
+              ที่ข้าม</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dup of duplicateANs(); track dup.an; let i = $index) {
+          <tr class="hover:bg-gray-50">
+            <td class="border border-gray-300 px-3 py-2 text-xs text-gray-600">{{ i + 1 }}</td>
+            <td class="border border-gray-300 px-3 py-2 text-xs font-mono text-orange-700 font-semibold">{{ dup.an }}
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-xs text-right text-red-600 font-medium">{{ dup.skippedCount
+              | number }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </pk-modal-body>
+  <pk-modal-footer>
+    <button type="button" (click)="modalDuplicateAN.set(false)"
       class="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400">ปิด</button>
   </pk-modal-footer>
 </pk-modal>
