@@ -70,6 +70,7 @@ export class UploadComponent implements OnInit, AfterViewInit {
   userInfo = signal<any>({});
   loading = signal(false);
   activeTab = signal('upload');
+  activeStatsTab = signal('overview');
   uploadProgress = signal(0);
   uploadStatus = signal('');
   uploadError = signal('');
@@ -103,15 +104,65 @@ export class UploadComponent implements OnInit, AfterViewInit {
     strokeRtpaWithin12h: 0,
     strokeRtpaWithin24h: 0,
     strokeRtpaOver24h: 0,
+    strokeTotalAmount: 0,
+    strokeTotalAdjrw: 0,
+    strokeAvgLos: 0,
+    strokeAvgAmount: 0,
+    strokeAmountPerAdjrw: 0,
+    strokeDeath: 0,
+    strokeDeathRate: 0,
+    strokeCmi: 0,
     appendicitisTotal: 0,
     appendicitisWithin24h: 0,
     appendicitis24to48h: 0,
     appendicitisOver48h: 0,
+    appendicitisTotalAmount: 0,
+    appendicitisTotalAdjrw: 0,
+    appendicitisAvgLos: 0,
+    appendicitisAvgAmount: 0,
+    appendicitisAmountPerAdjrw: 0,
+    appendicitisDeath: 0,
+    appendicitisDeathRate: 0,
+    appendicitisCmi: 0,
     deliveryTotal: 0,
     deliveryNormal: 0,
     deliveryCesarean: 0,
+    deliveryCesareanEmergency: 0,
     deliveryOther: 0,
     deliveryDeath: 0,
+    deliverySingleLive: 0,
+    deliverySingleStillbirth: 0,
+    deliveryTwinsBothLive: 0,
+    deliveryTwinsOneLiveOneStillbirth: 0,
+    maternalDeath: 0,
+    sepsisTotal: 0,
+    sepsisDeath: 0,
+    sepsisDeathRate: 0,
+    sepsisTotalLos: 0,
+    sepsisAvgLos: 0,
+    sepsisTotalAmount: 0,
+    sepsisAvgAmount: 0,
+    sepsisTotalAdjrw: 0,
+    sepsisCmi: 0,
+    amiTotal: 0,
+    amiWithPCI: 0,
+    amiWithCABG: 0,
+    amiWithPciCabgWithin24h: 0,
+    amiDeath: 0,
+    amiDeathRate: 0,
+    amiAvgLos: 0,
+    amiAvgAmount: 0,
+    amiCmi: 0,
+    hipFxTotal: 0,
+    hipFxWithSurgery: 0,
+    hipFxSurgeryWithin48h: 0,
+    hipFxSurgeryWithin72h: 0,
+    hipFxSurgeryAfter72h: 0,
+    hipFxDeath: 0,
+    hipFxDeathRate: 0,
+    hipFxAvgLos: 0,
+    hipFxAvgAmount: 0,
+    hipFxCmi: 0,
   });
 
   chartData = signal<any>(null);
@@ -192,6 +243,25 @@ export class UploadComponent implements OnInit, AfterViewInit {
     // Chart will be initialized when data is loaded
   }
 
+  /**
+   * Sanitize string value by replacing problematic characters with empty string
+   * - Replaces backslash (\) with empty string
+   * - Replaces ASCII control characters (< 32) except tab, CR, LF with empty string
+   */
+  private sanitizeValue(value: any): any {
+    if (typeof value !== 'string') return value;
+    
+    // Replace backslash with empty string
+    let sanitized = value.replace(/\\/g, '');
+    
+    // Replace ASCII control characters (0-31) except common whitespace
+    // Keep: tab(9), LF(10), CR(13)
+    // Replace: NULL(0) and other control chars
+    sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
+    
+    return sanitized;
+  }
+
   async upload(item: any): Promise<void> {
     const answer = await this.alert.confirm('ยืนยันการอัปโหลดข้อมูลไปยัง CMI Data Hub?');
     console.log('User confirmation:', answer);
@@ -224,6 +294,8 @@ export class UploadComponent implements OnInit, AfterViewInit {
               row[columnName] = row[key];
               delete row[key];
             }
+            // Sanitize string values to remove problematic control characters
+            row[columnName] = this.sanitizeValue(row[columnName]);
           }
           row.upd = upd;
           row.source = 'datahub';
@@ -502,6 +574,23 @@ export class UploadComponent implements OnInit, AfterViewInit {
       return hours !== null && hours > 24;
     }).length;
 
+    // Calculate additional Stroke statistics
+    const strokeTotalAmount = strokeCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const strokeTotalAdjrw = strokeCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const strokeTotalLos = strokeCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const strokeAvgLos = strokeTotal > 0 ? strokeTotalLos / strokeTotal : 0;
+    const strokeAvgAmount = strokeTotal > 0 ? strokeTotalAmount / strokeTotal : 0;
+    const strokeAmountPerAdjrw = strokeTotalAdjrw > 0 ? strokeTotalAmount / strokeTotalAdjrw : 0;
+    
+    const strokeDeath = strokeCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+    const strokeDeathRate = strokeTotal > 0 ? (strokeDeath / strokeTotal) * 100 : 0;
+    
+    const strokeCasesWithAdjrw = strokeCases.filter(row => +row.ADJRW > 0).length;
+    const strokeCmi = strokeCasesWithAdjrw > 0 ? strokeTotalAdjrw / strokeCasesWithAdjrw : 0;
+
     // Calculate Appendicitis statistics (ICD K35-K37)
     const isAppendicitis = (icd: string): boolean => {
       if (!icd) return false;
@@ -566,6 +655,23 @@ export class UploadComponent implements OnInit, AfterViewInit {
       return timeCategory === 'over48h';
     }).length;
 
+    // Calculate additional Appendicitis statistics
+    const appendicitisTotalAmount = appendicitisCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const appendicitisTotalAdjrw = appendicitisCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const appendicitisTotalLos = appendicitisCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const appendicitisAvgLos = appendicitisTotal > 0 ? appendicitisTotalLos / appendicitisTotal : 0;
+    const appendicitisAvgAmount = appendicitisTotal > 0 ? appendicitisTotalAmount / appendicitisTotal : 0;
+    const appendicitisAmountPerAdjrw = appendicitisTotalAdjrw > 0 ? appendicitisTotalAmount / appendicitisTotalAdjrw : 0;
+    
+    const appendicitisDeath = appendicitisCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+    const appendicitisDeathRate = appendicitisTotal > 0 ? (appendicitisDeath / appendicitisTotal) * 100 : 0;
+    
+    const appendicitisCasesWithAdjrw = appendicitisCases.filter(row => +row.ADJRW > 0).length;
+    const appendicitisCmi = appendicitisCasesWithAdjrw > 0 ? appendicitisTotalAdjrw / appendicitisCasesWithAdjrw : 0;
+
     // Calculate Delivery statistics
     const isDelivery = (row: any): boolean => {
       // Check PDX
@@ -609,12 +715,301 @@ export class UploadComponent implements OnInit, AfterViewInit {
       return false;
     }).length;
 
+    const deliveryCesareanEmergency = deliveryCases.filter(row => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('O82.1') || c === 'O821';
+      };
+      if (checkCode(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
     const deliveryOther = deliveryTotal - deliveryNormal - deliveryCesarean;
 
     const deliveryDeath = deliveryCases.filter(row => {
       const discht = String(row.DISCHT || '').trim();
       return discht === '8' || discht === '9';
     }).length;
+
+    // Calculate delivery outcome statistics (Z37.x)
+    const deliverySingleLive = deliveryCases.filter(row => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('Z37.0') || c === 'Z370';
+      };
+      if (checkCode(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
+    const deliverySingleStillbirth = deliveryCases.filter(row => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('Z37.1') || c === 'Z371';
+      };
+      if (checkCode(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
+    const deliveryTwinsBothLive = deliveryCases.filter(row => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('Z37.2') || c === 'Z372';
+      };
+      if (checkCode(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
+    const deliveryTwinsOneLiveOneStillbirth = deliveryCases.filter(row => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('Z37.3') || c === 'Z373';
+      };
+      if (checkCode(row.PDX)) return true;
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
+    // Calculate Maternal Death statistics
+    // ICD: O80-O86, O95, O721, O151, O881, O85 AND DISCHT in (8, 9)
+    const maternalDeath = this.dataList.filter(row => {
+      // Check if DISCHT is 8 or 9
+      const discht = String(row.DISCHT || '').trim();
+      if (discht !== '8' && discht !== '9') return false;
+
+      // Check maternal death ICD codes
+      const isMaternalDeathCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        // O80-O86
+        if (c >= 'O80' && c <= 'O86') return true;
+        // O95
+        if (c.startsWith('O95')) return true;
+        // O72.1, O15.1, O88.1
+        if (c.startsWith('O72.1') || c === 'O721') return true;
+        if (c.startsWith('O15.1') || c === 'O151') return true;
+        if (c.startsWith('O88.1') || c === 'O881') return true;
+        // O85
+        if (c.startsWith('O85')) return true;
+        return false;
+      };
+
+      // Check PDX
+      if (isMaternalDeathCode(row.PDX)) return true;
+      // Check SDX
+      for (let i = 1; i <= 13; i++) {
+        if (isMaternalDeathCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    }).length;
+
+    // Calculate Sepsis statistics (A40, A41)
+    const isSepsis = (row: any): boolean => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('A40') || c.startsWith('A41');
+      };
+      // Check PDX
+      if (checkCode(row.PDX)) return true;
+      // Check SDX
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    };
+
+    const sepsisCases = this.dataList.filter(row => isSepsis(row));
+    const sepsisTotal = sepsisCases.length;
+
+    const sepsisDeath = sepsisCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+
+    const sepsisDeathRate = sepsisTotal > 0 ? (sepsisDeath / sepsisTotal) * 100 : 0;
+
+    const sepsisTotalLos = sepsisCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const sepsisAvgLos = sepsisTotal > 0 ? sepsisTotalLos / sepsisTotal : 0;
+
+    const sepsisTotalAmount = sepsisCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const sepsisAvgAmount = sepsisTotal > 0 ? sepsisTotalAmount / sepsisTotal : 0;
+
+    const sepsisTotalAdjrw = sepsisCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const sepsisCasesWithAdjrw = sepsisCases.filter(row => +row.ADJRW > 0).length;
+    const sepsisCmi = sepsisCasesWithAdjrw > 0 ? sepsisTotalAdjrw / sepsisCasesWithAdjrw : 0;
+
+    // Calculate AMI statistics (I21-I22)
+    const isAMI = (row: any): boolean => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('I21') || c.startsWith('I22');
+      };
+      // Check PDX
+      if (checkCode(row.PDX)) return true;
+      // Check SDX
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    };
+
+    const hasPCI = (row: any): boolean => {
+      const pciCodes = ['3601', '3602', '3605', '3606', '3607', '3609'];
+      for (let i = 1; i <= 20; i++) {
+        const proc = row[`PROC${i}`];
+        if (proc && pciCodes.includes(proc.trim())) return true;
+      }
+      return false;
+    };
+
+    const hasCABG = (row: any): boolean => {
+      for (let i = 1; i <= 20; i++) {
+        const proc = row[`PROC${i}`];
+        if (proc) {
+          const p = proc.trim();
+          // CABG 3610-3619
+          if (p >= '3610' && p <= '3619') return true;
+        }
+      }
+      return false;
+    };
+
+    const amiCases = this.dataList.filter(row => isAMI(row));
+    const amiTotal = amiCases.length;
+
+    const amiWithPCI = amiCases.filter(row => hasPCI(row)).length;
+    const amiWithCABG = amiCases.filter(row => hasCABG(row)).length;
+
+    // Check PCI/CABG within 24h (assume if they have the procedure, it's within admission period)
+    // For better accuracy, would need DATEADM, TIMEADM vs procedure date/time
+    const amiWithPciCabgWithin24h = amiCases.filter(row => {
+      // Simple proxy: if LOS >= 1 and has PCI or CABG, assume within 24h
+      // Real implementation would compare DATEADM+TIMEADM with procedure datetime
+      const los = +row.LOS || 0;
+      return (hasPCI(row) || hasCABG(row));
+    }).length;
+
+    const amiDeath = amiCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+
+    const amiDeathRate = amiTotal > 0 ? (amiDeath / amiTotal) * 100 : 0;
+
+    const amiTotalLos = amiCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const amiAvgLos = amiTotal > 0 ? amiTotalLos / amiTotal : 0;
+
+    const amiTotalAmount = amiCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const amiAvgAmount = amiTotal > 0 ? amiTotalAmount / amiTotal : 0;
+
+    const amiTotalAdjrw = amiCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const amiCasesWithAdjrw = amiCases.filter(row => +row.ADJRW > 0).length;
+    const amiCmi = amiCasesWithAdjrw > 0 ? amiTotalAdjrw / amiCasesWithAdjrw : 0;
+
+    // Calculate Hip Fracture statistics (S720-S722) in elderly (age 60+)
+    const isHipFracture = (row: any): boolean => {
+      const checkCode = (code: string): boolean => {
+        if (!code) return false;
+        const c = code.trim().toUpperCase();
+        return c.startsWith('S720') || c.startsWith('S721') || c.startsWith('S722');
+      };
+      // Check PDX
+      if (checkCode(row.PDX)) return true;
+      // Check SDX
+      for (let i = 1; i <= 13; i++) {
+        if (checkCode(row[`SDX${i}`])) return true;
+      }
+      return false;
+    };
+
+    const hasHipSurgery = (row: any): { hasProc: boolean; hoursToSurgery: number | null } => {
+      const surgeryProcs = ['8151', '8152', '7935', '7805'];
+      
+      for (let i = 1; i <= 20; i++) {
+        const proc = row[`PROC${i}`];
+        if (proc && surgeryProcs.includes(proc.trim())) {
+          const dateIn = row[`DATEIN${i}`];
+          const timeIn = row[`TIMEIN${i}`];
+          
+          if (dateIn && row.DATEADM) {
+            const admitDateTime = dayjs(`${row.DATEADM} ${row.TIMEADM || '00:00'}`);
+            const procDateTime = dayjs(`${dateIn} ${timeIn || '00:00'}`);
+            const hoursDiff = procDateTime.diff(admitDateTime, 'hour', true);
+            
+            if (hoursDiff >= 0) {
+              return { hasProc: true, hoursToSurgery: hoursDiff };
+            }
+          }
+          // If no valid date, still count as having procedure
+          return { hasProc: true, hoursToSurgery: null };
+        }
+      }
+      return { hasProc: false, hoursToSurgery: null };
+    };
+
+    const hipFxCases = this.dataList.filter(row => {
+      // Check if hip fracture
+      if (!isHipFracture(row)) return false;
+      // Check if age 60+
+      const age = +row.AGE_Y || 0;
+      return age >= 60;
+    });
+
+    const hipFxTotal = hipFxCases.length;
+
+    const hipFxWithSurgery = hipFxCases.filter(row => hasHipSurgery(row).hasProc).length;
+
+    const hipFxSurgeryWithin48h = hipFxCases.filter(row => {
+      const { hasProc, hoursToSurgery } = hasHipSurgery(row);
+      return hasProc && hoursToSurgery !== null && hoursToSurgery <= 48;
+    }).length;
+
+    const hipFxSurgeryWithin72h = hipFxCases.filter(row => {
+      const { hasProc, hoursToSurgery } = hasHipSurgery(row);
+      return hasProc && hoursToSurgery !== null && hoursToSurgery > 48 && hoursToSurgery <= 72;
+    }).length;
+
+    const hipFxSurgeryAfter72h = hipFxCases.filter(row => {
+      const { hasProc, hoursToSurgery } = hasHipSurgery(row);
+      return hasProc && hoursToSurgery !== null && hoursToSurgery > 72;
+    }).length;
+
+    const hipFxDeath = hipFxCases.filter(row => {
+      const discht = String(row.DISCHT || '').trim();
+      return discht === '8' || discht === '9';
+    }).length;
+
+    const hipFxDeathRate = hipFxTotal > 0 ? (hipFxDeath / hipFxTotal) * 100 : 0;
+
+    const hipFxTotalLos = hipFxCases.reduce((sum, row) => sum + (+row.ACTLOS || 0), 0);
+    const hipFxAvgLos = hipFxTotal > 0 ? hipFxTotalLos / hipFxTotal : 0;
+
+    const hipFxTotalAmount = hipFxCases.reduce((sum, row) => sum + (+row.TOTAL || 0), 0);
+    const hipFxAvgAmount = hipFxTotal > 0 ? hipFxTotalAmount / hipFxTotal : 0;
+
+    const hipFxTotalAdjrw = hipFxCases.reduce((sum, row) => sum + (+row.ADJRW || 0), 0);
+    const hipFxCasesWithAdjrw = hipFxCases.filter(row => +row.ADJRW > 0).length;
+    const hipFxCmi = hipFxCasesWithAdjrw > 0 ? hipFxTotalAdjrw / hipFxCasesWithAdjrw : 0;
 
     this.stats.set({
       totalCases,
@@ -640,15 +1035,65 @@ export class UploadComponent implements OnInit, AfterViewInit {
       strokeRtpaWithin12h,
       strokeRtpaWithin24h,
       strokeRtpaOver24h,
+      strokeTotalAmount,
+      strokeTotalAdjrw,
+      strokeAvgLos,
+      strokeAvgAmount,
+      strokeAmountPerAdjrw,
+      strokeDeath,
+      strokeDeathRate,
+      strokeCmi,
       appendicitisTotal,
       appendicitisWithin24h,
       appendicitis24to48h,
       appendicitisOver48h,
+      appendicitisTotalAmount,
+      appendicitisTotalAdjrw,
+      appendicitisAvgLos,
+      appendicitisAvgAmount,
+      appendicitisAmountPerAdjrw,
+      appendicitisDeath,
+      appendicitisDeathRate,
+      appendicitisCmi,
       deliveryTotal,
       deliveryNormal,
       deliveryCesarean,
+      deliveryCesareanEmergency,
       deliveryOther,
       deliveryDeath,
+      deliverySingleLive,
+      deliverySingleStillbirth,
+      deliveryTwinsBothLive,
+      deliveryTwinsOneLiveOneStillbirth,
+      maternalDeath,
+      sepsisTotal,
+      sepsisDeath,
+      sepsisDeathRate,
+      sepsisTotalLos,
+      sepsisAvgLos,
+      sepsisTotalAmount,
+      sepsisAvgAmount,
+      sepsisTotalAdjrw,
+      sepsisCmi,
+      amiTotal,
+      amiWithPCI,
+      amiWithCABG,
+      amiWithPciCabgWithin24h,
+      amiDeath,
+      amiDeathRate,
+      amiAvgLos,
+      amiAvgAmount,
+      amiCmi,
+      hipFxTotal,
+      hipFxWithSurgery,
+      hipFxSurgeryWithin48h,
+      hipFxSurgeryWithin72h,
+      hipFxSurgeryAfter72h,
+      hipFxDeath,
+      hipFxDeathRate,
+      hipFxAvgLos,
+      hipFxAvgAmount,
+      hipFxCmi,
     });
   }
 
