@@ -1,0 +1,162 @@
+<div class="layout">
+  <nav class="pk-breadcrumb">
+    <ol class="pk-breadcrumb-list">
+      <li class="pk-breadcrumb-item">Home</li>
+      <li class="pk-breadcrumb-item cursor-pointer" routerLink="/reports">รายงาน</li>
+      <li class="pk-breadcrumb-item pk-breadcrumb-item--active cursor-pointer">
+        CMI รายสถานพยาบาล
+      </li>
+    </ol>
+  </nav>
+
+  <div class="pk-card my-2 pk-font-bai-jamjuree">
+    <div class="pk-card-header flex flex-wrap justify-between font-bold text-sky-700 items-center gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <pk-icon iconSet="google" name="bar_chart" [size]="22" />
+        <span class="text-xl sm:text-xl truncate">รายงาน CMI แยกรายสถานพยาบาล</span>
+      </div>
+      <!-- <span class="text-red-500 text-xs">
+      (<a href="https://www.tcmc.or.th/tdrg" target="_blank" rel="noopener noreferrer">ที่มา: สรท.</a>)
+    </span> -->
+    </div>
+    <div class="pk-card-body min-h-100">
+      <div>
+        <div class="formControl">
+          <label>ตั้งแต่เดือน:</label>
+          <select [(ngModel)]="monthStart">
+            @for (month of [1,2,3,4,5,6,7,8,9,10,11,12]; track month){
+            <option [value]="month">{{ month }}</option>
+            }
+          </select>
+        </div>
+        <div class="formControl">
+          <label>ปี:</label>
+          <select [(ngModel)]="yearStart">
+            @for (year of yearList; track year){
+            <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </div>
+        <div class="formControl">
+          <label>ถึงเดือน:</label>
+          <select [(ngModel)]="monthEnd">
+            @for (month of [1,2,3,4,5,6,7,8,9,10,11,12]; track month){
+            <option [value]="month">{{ month }}</option>
+            }
+          </select>
+        </div>
+        <div class="formControl">
+          <label>ปี:</label>
+          <select [(ngModel)]="yearEnd">
+            @for (year of yearList; track year){
+            <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </div>
+        <div class="formControl">
+          <label>ระดับสถานพยาบาล:</label>
+          <select [(ngModel)]="hospitalLevel">
+            <!-- <option value="F">ระดับ F</option> -->
+            <option value="">ทั้งหมด</option>
+            <option value="F1">ระดับ F1</option>
+            <option value="F2">ระดับ F2</option>
+            <option value="F3">ระดับ F3</option>
+            <option value="M1">ระดับ M1</option>
+            <option value="M2">ระดับ M2</option>
+            <option value="S">ระดับ S</option>
+            <option value="A">ระดับ A</option>
+          </select>
+        </div>
+
+        <div class="formControl">
+          <label>เขตสุขภาพ:</label>
+          <select [(ngModel)]="regionCode">
+            <option value="">ทั้งหมด</option>
+            @for (region of [1,2,3,4,5,6,7,8,9,10,11,12,13]; track region){
+            <option [value]="region">{{ region }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="formControl">
+          <label>รหัสจังหวัด:</label>
+          <input type="text" [(ngModel)]="provinceCode" placeholder="กรอกเฉพาะรหัส" class="w-20 h-10" />
+        </div>
+
+        <div class="formControl">
+          <button class="pk-btn pk-btn-outline"
+            [disabled]="loading() || (!hospitalLevel() && !provinceCode() && !regionCode())" (click)="process()">
+            @if(loading()){
+            <span class="pk-spinner pk-spinner-inline"></span>
+            } @else {
+            <pk-icon iconSet="google" name="search" [size]="20" />
+            }
+            Process
+          </button>
+        </div>
+      </div>
+
+      @if (sumHospitals().length > 0) {
+      <div class="my-4">
+        <div echarts [options]="chartOptions()" class="h-96 w-full"></div>
+      </div>
+
+      <div class="my-4 max-h-120 overflow-auto">
+        <table class="pk-table pk-table-sm pk-table-bordered">
+          <thead>
+            <tr>
+              <th class="text-center" rowspan="2">#</th>
+              <th class="text-center" rowspan="2">รหัส</th>
+              <th class="text-left" rowspan="2">ชื่อสถานพยาบาล</th>
+              @if(!hospitalLevel()){
+              <th class="text-center" rowspan="2">ระดับ</th>
+              }
+              <th class="text-center" rowspan="2">จำนวน<br>(ราย)</th>
+              <th class="text-center" colspan="3">LOS</th>
+              <th class="text-center" rowspan="2">RW=0<br>(ราย)</th>
+              <th class="text-center" colspan="2">AdjRW</th>
+              <th class="text-center" colspan="2">เสียชีวิต</th>
+              <!-- <th class="text-center" colspan="2">Refer In</th> -->
+            </tr>
+            <tr>
+              <th class="text-center">วัน</th>
+              <th class="text-center">วัน/ราย</th>
+              <th class="text-center" pkTooltip="ราย/วัน">ActiveBed</th>
+              <th class="text-center">รวม</th>
+              <th class="text-center">CMI</th>
+              <th class="text-center">ราย</th>
+              <th class="text-center">CMI</th>
+              <!-- <th class="text-center">ราย</th>
+            <th class="text-center">CMI</th> -->
+            </tr>
+          </thead>
+          <tbody>
+            @for(hospital of sumHospitals(); track hospital.hcode){
+            <tr>
+              <td class="text-center">{{ $index + 1 }}</td>
+              <td class="text-center">{{ hospital.hcode }}</td>
+              <td>{{ hospital.hname }}</td>
+              @if(!hospitalLevel()){
+              <td class="text-center">{{ hospital.splevel }}</td>
+              }
+              <!-- <td class="text-right">{{ hospital.bed | number}}</td> -->
+              <td class="text-right">{{ hospital.cases | number}}</td>
+              <td class="text-right">{{ hospital.actlos | number}}</td>
+              <td class="text-right">{{ hospital.actlos/hospital.cases | number:'1.2-2' }}</td>
+              <td class="text-right">{{ hospital.actlos/dayCount() | number:'1.1-1' }}</td>
+              <td class="text-right">{{ hospital.rw0_cases | number}}</td>
+              <td class="text-right">{{ hospital.adjrw | number:'1.2-2' }}</td>
+              <td class="text-right text-green-600 font-bold">{{ hospital.cmi | number:'1.4-4' }}</td>
+              <td class="text-right">{{ hospital.dead_cases | number}}</td>
+              <td class="text-right">{{ hospital.dead_cmi | number:'1.2-2' }}</td>
+              <!-- <td class="text-right">{{ hospital.referin_cases | number}}</td>
+            <td class="text-right">{{ hospital.referin_cmi | number:'1.2-2' }}</td> -->
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+  </div>
+</div>

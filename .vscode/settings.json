@@ -1,0 +1,13 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "ng": true,
+    "/^python3 -c \"\nwith open\\('/Users/pck/development/source/shares/drg-ai/drg-ai-frontend/node_modules/ngx-pk-ui/fesm2022/ngx-pk-ui\\.mjs'\\) as f:\n    content = f\\.read\\(\\)\nidx = content\\.find\\('class PkSplit\\\\b'\\)\nif idx < 0:\n    idx = content\\.find\\('class PkSplit \\{'\\)\nprint\\('PkSplit class at', idx\\)\nprint\\(content\\[idx:idx\\+2000\\]\\)\n\"\n$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^python3 -c \"\nwith open\\('/Users/pck/development/source/shares/drg-ai/drg-ai-frontend/node_modules/ngx-pk-ui/fesm2022/ngx-pk-ui\\.mjs'\\) as f:\n    content = f\\.read\\(\\)\n# Check PkSplit export and selector\nidx = content\\.find\\(\\\\\"selector: 'pk-split'\\\\\"\\)\nprint\\(content\\[idx:idx\\+200\\]\\)\nprint\\(\\)\n# Also check the d\\.ts exports\n\" && grep -n \"PkSplit\\\\\\|pk-split\" /Users/pck/development/source/shares/drg-ai/drg-ai-frontend/node_modules/ngx-pk-ui/index\\.d\\.ts \\| head -20$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}

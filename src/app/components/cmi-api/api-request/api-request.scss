@@ -1,0 +1,71 @@
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.split-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-scroll {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* ── Form fields ─────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.field-input {
+  height: 36px;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 0.875rem;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  color: #111827;
+
+  &:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  &.field-input--err {
+    border-color: #ef4444;
+    &:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+  }
+}
+
+.field-err {
+  font-size: 0.7rem;
+  color: #ef4444;
+}

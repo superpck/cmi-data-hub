@@ -1,0 +1,130 @@
+input,
+select {
+  height: 35px;
+  padding: 4px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+
+  td {
+    height: auto;
+    text-align: center;
+  }
+}
+
+.table-ipd {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  td {
+    height: auto;
+    border: 0px solid #ddd;
+    border-bottom: 1px solid #efefef;
+    white-space: nowrap !important;
+  }
+
+  .table-title {
+    text-align: right;
+    padding-right: 8px;
+    border-right: 1px solid #ddd;
+    background-color: rgb(248, 248, 248);
+    color: rgb(91, 94, 98);
+    white-space: nowrap !important;
+  }
+
+  .table-content {
+    text-align: left;
+    padding-left: 8px;
+    background-color: rgb(248, 251, 255);
+    color: rgb(0, 115, 255);
+    font-size: 18px !important;
+    white-space: nowrap !important;
+  }
+
+  tr:hover {
+    font-weight: bold;
+
+    .table-title:hover {
+      background-color: rgb(233, 233, 233);
+    }
+
+    .table-content {
+      background-color: rgb(222, 236, 254);
+    }
+  }
+}
+
+.width25 {
+  width: 25px;
+}
+
+.width50 {
+  width: 50px;
+}
+
+.width100 {
+  width: 100px;
+}
+
+.width150 {
+  width: 150px;
+}
+
+// Add styles for printable area with scrollable table
+#printableArea {
+  width: 100%;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  position: relative;
+  
+  table {
+    margin-bottom: 0;
+  }
+  
+  // Make the header sticky when scrolling
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
+    // Add box-shadow to create separation
+    th {
+      box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+      background-color: #f0f0f0;
+      white-space: nowrap !important;
+    }
+  }
+  
+  // Prevent text wrapping in table cells
+  th, td {
+    white-space: nowrap !important;
+  }
+}
+
+// For print version
+@media print {
+  #printableArea {
+    max-height: none !important;
+    overflow: visible !important;
+    
+    // Reset sticky positioning when printing
+    thead {
+      position: static;
+      
+      th {
+        box-shadow: none;
+      }
+    }
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+

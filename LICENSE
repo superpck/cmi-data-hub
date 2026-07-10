@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 PHDB, Ministry of Public Health, Thailand
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ใบอนุญาต MIT
+
+สงวนลิขสิทธิ์ (c) 2026 กองบริหารการสาธารณสุข สำนักงานปลัดกระทรวงสาธารณสุข กระทรวงสาธารณสุข ประเทศไทย
+
+อนุญาตให้บุคคลใดก็ตามที่ได้รับสำเนาของซอฟต์แวร์นี้และไฟล์เอกสารประกอบ ("ซอฟต์แวร์") 
+ใช้งานซอฟต์แวร์ได้โดยไม่มีค่าใช้จ่าย โดยไม่มีข้อจำกัดใดๆ รวมถึงแต่ไม่จำกัดเพียงสิทธิ์
+ในการใช้งาน คัดลอก ดัดแปลง รวม เผยแพร่ แจกจ่าย อนุญาตช่วง และ/หรือขายสำเนาของ
+ซอฟต์แวร์ และอนุญาตให้บุคคลที่ได้รับซอฟต์แวร์ดำเนินการดังกล่าว ภายใต้เงื่อนไขดังต่อไปนี้:
+
+ประกาศเกี่ยวกับลิขสิทธิ์ข้างต้นและประกาศการอนุญาตนี้จะต้องรวมอยู่ในสำเนาหรือส่วนสำคัญ
+ทั้งหมดของซอฟต์แวร์
+
+ซอฟต์แวร์นี้ให้บริการ "ตามสภาพที่เป็นอยู่" โดยไม่มีการรับประกันใดๆ ไม่ว่าโดยชัดแจ้งหรือ
+โดยนัยใดๆ รวมถึงแต่ไม่จำกัดเพียงการรับประกันความสามารถในการใช้งานเชิงพาณิชย์ 
+ความเหมาะสมสำหรับวัตถุประสงค์เฉพาะ และการไม่ละเมิดสิทธิ์ ไม่ว่ากรณีใดๆ ผู้เขียนหรือ
+ผู้ถือลิขสิทธิ์จะไม่รับผิดชอบต่อข้อเรียกร้อง ความเสียหาย หรือความรับผิดอื่นใด ไม่ว่าจะเป็น
+การกระทำตามสัญญา การละเมิด หรือกรณีอื่นใด ที่เกิดจากหรือเกี่ยวข้องกับซอฟต์แวร์หรือ
+การใช้งานหรือการดำเนินการอื่นๆ ในซอฟต์แวร์

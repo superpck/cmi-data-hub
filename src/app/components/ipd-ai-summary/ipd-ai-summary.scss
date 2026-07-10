@@ -1,0 +1,24 @@
+.dark {
+  .pk-datepicker {
+    --pk-datepicker-bg: #1f2937;
+    --pk-datepicker-border: #374151;
+    --pk-datepicker-hover-bg: #374151;
+    --pk-datepicker-hover-border: #4b5563;
+    --pk-datepicker-selected-bg: #2563eb;
+    --pk-datepicker-selected-border: #2563eb;
+    --pk-datepicker-today-border: #2563eb;
+  }
+}
+
+/* Collapsed width applies only on desktop (lg+) */
+@media (min-width: 1024px) {
+  .sidebar-collapsed {
+    width: 3.5rem; /* 56px */
+  }
+}
+
+label {
+  font-size: 0.75rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}

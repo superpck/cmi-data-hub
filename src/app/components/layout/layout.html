@@ -1,0 +1,82 @@
+<router-outlet />
+
+<!-- ── Floating settings ──────────────────────────────────────────────── -->
+<div class="fixed top-3 right-3 z-50 flex items-center gap-2">
+
+  @if (settingsOpen()) {
+    <div
+      class="settings-panel flex items-center gap-3
+             bg-white dark:bg-gray-800 rounded-xl shadow-lg
+             border border-gray-200 dark:border-gray-700 px-4 py-2.5"
+      role="menu"
+      aria-label="ตั้งค่า"
+    >
+      <span class="text-sm text-gray-600 dark:text-gray-300 select-none">
+        {{ themeService.isDark() ? 'Dark' : 'Light' }}
+      </span>
+      <!-- Toggle switch -->
+      <button
+        type="button"
+        role="switch"
+        (click)="themeService.toggle()"
+        [attr.aria-checked]="themeService.isDark()"
+        [attr.aria-label]="themeService.isDark() ? 'เปลี่ยนเป็น Light mode' : 'เปลี่ยนเป็น Dark mode'"
+        class="relative w-11 h-6 rounded-full transition-colors duration-200
+               bg-gray-200 dark:bg-green-700
+               focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2"
+      >
+        <span
+          class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow
+                 transition-transform duration-200"
+          [class.translate-x-5]="themeService.isDark()"
+        ></span>
+      </button>
+
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-600"></div>
+
+      <!-- Home button -->
+      <button
+        type="button"
+        aria-label="หน้าแรก"
+        routerLink="/drg-util/drg-seeker"
+        class="flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600
+               focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
+      >
+        <pk-icon iconSet="google" name="home" [size]="16" />
+        <span>Home</span>
+      </button>
+
+      <!-- Logout button -->
+      <button
+        type="button"
+        (click)="logout()"
+        aria-label="ออกจากระบบ"
+        class="flex items-center gap-1.5 text-sm font-medium text-red-500 hover:text-red-600
+               focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
+      >
+        <pk-icon iconSet="google" name="logout" [size]="16" />
+        <span>ออกจากระบบ</span>
+      </button>
+    </div>
+  }
+
+  <!-- Settings button -->
+  <button
+    type="button"
+    (click)="toggleSettings()"
+    [attr.aria-label]="settingsOpen() ? 'ปิดเมนูตั้งค่า' : 'เปิดเมนูตั้งค่า'"
+    [attr.aria-expanded]="settingsOpen()"
+    class="w-9 h-9 rounded-full bg-white dark:bg-gray-800 shadow-md
+           border border-gray-200 dark:border-gray-700
+           flex items-center justify-center
+           text-gray-500 dark:text-gray-400
+           opacity-30 hover:opacity-100 transition-opacity duration-200
+           hover:bg-gray-50 dark:hover:bg-gray-700
+           focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2
+           focus-visible:opacity-100"
+    [class.opacity-100]="settingsOpen()"
+  >
+    <pk-icon iconSet="google" name="settings" [size]="18" />
+  </button>
+
+</div>
