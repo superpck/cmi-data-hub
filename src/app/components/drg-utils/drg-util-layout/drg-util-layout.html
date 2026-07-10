@@ -1,8 +1,11 @@
 <div class="drg-util-shell pk-font-bai-jamjuree">
   <pk-sidenav [groups]="navGroups()" [activeKey]="activeKey()" mode="auto" [theme]="sidenavTheme()" [breakpoint]="768">
     <div pkSidenavHeader style="display:flex;align-items:center;gap:10px;font-weight:700;">
-      <span class="w-8"><img src="images/logomoph.png" alt=""></span>
-      <span class="pk-snv-hide-on-icon">{{ config().appCode }}</span>
+      <span class="w-9"><img src="images/logomoph.png" alt=""></span>
+      <span class="pk-snv-hide-on-icon flex flex-col">
+        <span>{{ config().appCode }}</span>
+        <span class="text-xs">v.{{ config().version }}</span>
+      </span>
     </div>
 
     <div pkSidenavUser class="flex flex-col gap-2 shrink-0">

@@ -1,7 +1,7 @@
 {
   "name": "cmi-data-hub",
-  "version": "1.4.4",
-  "subVersion": "2026.06.02-2",
+  "version": "5.0.1",
+  "subVersion": "2026.07.10-1",
   "description": "ระบบข้อมูล CMI กลางกระทรวงสาธารณสุข",
   "scripts": {
     "ng": "ng",

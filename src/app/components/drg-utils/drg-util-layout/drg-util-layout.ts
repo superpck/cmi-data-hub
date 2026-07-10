@@ -76,10 +76,10 @@ export class DrgUtilLayout implements OnInit {
       collapsible: true,
       collapsed: false,
       items: [
-        { key: 'รายงาน', label: 'DRG Report', icon: 'analytics', href: 'https://cmi.moph.go.th/report/default/sumall' },
-        { key: 'utility', label: 'DRG Utility', icon: 'troubleshoot', href: 'https://cmi.moph.go.th/util/default/download' },
+        { key: 'upload', label: 'Upload CSV', icon: 'upload_file', route: '/drg-util/upload' },
         { key: 'drg-seeker', label: 'DRG Seeker', icon: 'search_insights', route: '/drg-util/drg-seeker' },
-        { key: 'upload', label: 'Upload CSV', icon: 'upload_file', route: '/drg-util/upload' }
+        { key: 'รายงาน', label: 'DRG Report', icon: 'analytics', href: 'https://cmi.moph.go.th/report/default/sumall' },
+        { key: 'utility', label: 'DRG Utility', icon: 'troubleshoot', href: 'https://cmi.moph.go.th/util/default/download' }
       ],
     },
     {
@@ -97,6 +97,7 @@ export class DrgUtilLayout implements OnInit {
   betaMenu = {
     cmi: [
       { key: 'data-list', label: 'ทะเบียน IPD', icon: 'table', route: '/drg-util/data-list' },
+      { key: 'reports', label: 'รายงาน', icon: 'bar_chart', route: '/reports' },
     ],
     ai: [
       { key: 'ipd-summary', label: 'D/C Summary', icon: 'flowsheet', route: '/ai-tools/ipd-summary' },
@@ -109,8 +110,8 @@ export class DrgUtilLayout implements OnInit {
     this.userInfo.set(info ?? {});
     if (this.isBeta) {
       this.navGroups.update(groups => {
-        groups[1].items.push(...this.betaMenu.cmi);
-        groups[0].items.push(...this.betaMenu.ai);
+        groups[1].items = [...this.betaMenu.cmi, ...groups[1].items];
+        groups[0].items = [...groups[0].items, ...this.betaMenu.ai];
         return [...groups];
       });
     }

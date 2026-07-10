@@ -1,0 +1,11 @@
+<nav class="pk-breadcrumb">
+  <ol class="pk-breadcrumb-list">
+    <li class="pk-breadcrumb-item">Home</li>
+    <li class="pk-breadcrumb-item cursor-pointer">รายงาน</li>
+  </ol>
+</nav>
+
+<div class="pk-card my-2 py-4 px-10 pk-font-bai-jamjuree">
+  <pk-treeview [nodes]="lists" selection="none" [showSelectAll]="false" [expandDepth]="1"
+    (selected)="onSelected($event)" />
+</div>

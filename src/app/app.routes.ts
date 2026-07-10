@@ -41,6 +41,21 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'reports',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/drg-utils/drg-util-layout/drg-util-layout').then((m) => m.DrgUtilLayout),
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./components/reports/reports').then((m) => m.Reports),
+      },
+      {
+        path: 'cmi-hospital',
+        loadComponent: () => import('./components/reports/report-cmi-hospital/report-cmi-hospital').then((m) => m.ReportCmiHospital),
+      }
+    ]
+  },
+  {
     path: 'ai-tools',
     canActivate: [authGuard],
     loadComponent: () => import('./components/layout/layout').then((m) => m.Layout),

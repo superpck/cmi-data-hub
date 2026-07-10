@@ -1,0 +1,37 @@
+.layout {
+  background: var(--app-bg-color);
+  color: var(--app-text-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.formControl {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  vertical-align: bottom;
+  padding: 0 0.4rem;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
