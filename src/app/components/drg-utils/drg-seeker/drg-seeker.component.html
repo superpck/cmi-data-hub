@@ -62,50 +62,50 @@
     }
 
     <div class="section flex flex-wrap gap-x-3 gap-y-2 mb-3">
-      <div class="formControl">
+      <div class="inputControl">
         <label>HCode</label>
         <input name="hcode" [(ngModel)]="hcode" [disabled]="$safeNavigationMigration(userInfo()?.hcode)" style="width: 120px;"
           placeholder="hcode">
       </div>
       @if (userInfo()?.hcode) {
-      <div class="formControl">
+      <div class="inputControl">
         <label>ปี</label>
         <input name="yearly" [(ngModel)]="yearly" placeholder="ปี" (change)="checkAN()" style="width: 70px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>AN</label>
         <input name="an" [(ngModel)]="an" style="width: 110px;" placeholder="AN" (change)="checkAN()">
       </div>
       }
-      <div class="formControl">
+      <div class="inputControl">
         <label>เพศ</label>
         <div class="radio-group">
           <label><input type="radio" name="sex" [(ngModel)]="ipdData.sex" [value]="1"> ชาย</label>
           <label><input type="radio" name="sex" [(ngModel)]="ipdData.sex" [value]="2"> หญิง</label>
         </div>
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>อายุ (ปี)</label>
         <input type="number" name="age" [(ngModel)]="ipdData.age" placeholder="ปี" style="width: 70px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>อายุ (วัน)</label>
         <input type="number" name="age_day" [(ngModel)]="ipdData.age_day" placeholder="วัน" style="width: 70px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>น้ำหนัก (กก.)</label>
         <input type="number" name="weight" [(ngModel)]="ipdData.weight" style="width: 80px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>LOS (วัน)</label>
         <input type="number" name="los_day" [(ngModel)]="ipdData.los_day" placeholder="วัน" (change)="calCarry()"
           style="width: 70px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>LOS (ชม.)</label>
         <input type="number" name="los_hour" [(ngModel)]="ipdData.los_hour" placeholder="ชม." style="width: 60px;">
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>D/C Status</label>
         <select name="ipdResult" [(ngModel)]="ipdData.ipdResult" style="width: min(280px, 100%)">
           @for (item of ipdResultList(); track item) {
@@ -115,7 +115,7 @@
           }
         </select>
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>ค่ารักษา (บาท)</label>
         <input type="number" name="price" [(ngModel)]="ipdData.price" placeholder="บาท" style="width: 120px;"
           (change)="calCarry()">
@@ -123,14 +123,14 @@
     </div>
 
     <div class="section flex flex-wrap gap-x-2 gap-y-2 mb-3">
-      <div class="formControl">
+      <div class="inputControl">
         <label>PDx</label>
         <input name="pdx" [(ngModel)]="pdx.code" placeholder="Principal Dx" (change)="checkDx(-1)" [title]="pdx.name"
           style="width: 110px;" [class]="pdx.code && !pdx.name ? 'bg-red-100' : ''">
       </div>
       @for (i of seqDx; track i) {
       @if (i === 0 || dxList[i].code !== '' || dxList[i-1].code !== '') {
-      <div class="formControl">
+      <div class="inputControl">
         <label>SDx {{ i + 1 }}</label>
         <input [disabled]="calculating()" [name]="'dx' + i" [(ngModel)]="dxList[i].code"
           [placeholder]="'SDx ' + (i + 1)" style="width: 100px;" (change)="checkDx(i)" [title]="dxList[i].name"
@@ -143,7 +143,7 @@
     <div class="section flex flex-wrap gap-x-2 gap-y-2 mb-3">
       @for (i of seqOp; track i) {
       @if (i === 0 || opList[i].code !== '' || opList[i-1].code !== '') {
-      <div class="formControl">
+      <div class="inputControl">
         <label>Proc {{ i + 1 }}</label>
         <input [disabled]="calculating()" [name]="'op' + i" [(ngModel)]="opList[i].code"
           [placeholder]="'Proc ' + (i + 1)" style="width: 90px;" (change)="checkOP(i)" [title]="opList[i].name"

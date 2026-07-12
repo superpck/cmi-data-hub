@@ -20,42 +20,49 @@
     </span> -->
     </div>
     <div class="pk-card-body min-h-100">
-      <div>
-        <div class="formControl">
+      <div class="flex flex-wrap gap-4 items-end">
+        <!-- <div class="inputControl">
           <label>ตั้งแต่เดือน:</label>
-          <select [(ngModel)]="monthStart">
+          <select [(ngModel)]="monthStart" [disabled]="loading()">
             @for (month of [1,2,3,4,5,6,7,8,9,10,11,12]; track month){
             <option [value]="month">{{ month }}</option>
             }
           </select>
+        </div> -->
+        <div class="inputControl">
+          <label>ประเภทปี:</label>
+          <select [(ngModel)]="typeYear" [disabled]="loading()" (ngModelChange)="clearData()">
+            <option value="ปีงบประมาณ">ปีงบประมาณ</option>
+            <option value="ปี พ.ศ.">ปีปฏิทิน</option>
+          </select>
         </div>
-        <div class="formControl">
-          <label>ปี:</label>
-          <select [(ngModel)]="yearStart">
+        <div class="inputControl">
+          <label>{{typeYear()}}:</label>
+          <select [(ngModel)]="yearStart" [disabled]="loading()" (ngModelChange)="yearEnd = yearStart; clearData()">
             @for (year of yearList; track year){
             <option [value]="year">{{ year }}</option>
             }
           </select>
         </div>
-        <div class="formControl">
+        <!-- <div class="inputControl">
           <label>ถึงเดือน:</label>
-          <select [(ngModel)]="monthEnd">
+          <select [(ngModel)]="monthEnd" [disabled]="loading()">
             @for (month of [1,2,3,4,5,6,7,8,9,10,11,12]; track month){
             <option [value]="month">{{ month }}</option>
             }
           </select>
-        </div>
-        <div class="formControl">
+        </div> -->
+        <!-- <div class="inputControl">
           <label>ปี:</label>
-          <select [(ngModel)]="yearEnd">
+          <select [(ngModel)]="yearEnd" [disabled]="loading()">
             @for (year of yearList; track year){
             <option [value]="year">{{ year }}</option>
             }
           </select>
-        </div>
-        <div class="formControl">
+        </div> -->
+        <div class="inputControl">
           <label>ระดับสถานพยาบาล:</label>
-          <select [(ngModel)]="hospitalLevel">
+          <select [(ngModel)]="hospitalLevel" [disabled]="loading()" (ngModelChange)="clearData()">
             <!-- <option value="F">ระดับ F</option> -->
             <option value="">ทั้งหมด</option>
             <option value="F1">ระดับ F1</option>
@@ -68,9 +75,9 @@
           </select>
         </div>
 
-        <div class="formControl">
+        <div class="inputControl">
           <label>เขตสุขภาพ:</label>
-          <select [(ngModel)]="regionCode">
+          <select [(ngModel)]="regionCode" [disabled]="loading()" (ngModelChange)="clearData()">
             <option value="">ทั้งหมด</option>
             @for (region of [1,2,3,4,5,6,7,8,9,10,11,12,13]; track region){
             <option [value]="region">{{ region }}</option>
@@ -78,12 +85,12 @@
           </select>
         </div>
 
-        <div class="formControl">
+        <div class="inputControl">
           <label>รหัสจังหวัด:</label>
-          <input type="text" [(ngModel)]="provinceCode" placeholder="กรอกเฉพาะรหัส" class="w-20 h-10" />
+          <input type="text" [disabled]="loading()" [(ngModel)]="provinceCode" (ngModelChange)="clearData()" placeholder="กรอกเฉพาะรหัส" class="w-20 h-10" />
         </div>
 
-        <div class="formControl">
+        <div class="inputControl">
           <button class="pk-btn pk-btn-outline"
             [disabled]="loading() || (!hospitalLevel() && !provinceCode() && !regionCode())" (click)="process()">
             @if(loading()){
@@ -101,7 +108,10 @@
         <div echarts [options]="chartOptions()" class="h-96 w-full"></div>
       </div>
 
-      <div class="my-4 max-h-120 overflow-auto">
+      <div class="my-4 max-h-120 overflow-auto" id="hospital-list">
+        <div style="text-align: center; font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem;">
+          จำนวนผู้ป่วยในจำแนกตามสถานพยาบาล (ราย) <br>{{ typeYear() }} {{ yearStart() }}
+        </div>
         <table class="pk-table pk-table-sm pk-table-bordered">
           <thead>
             <tr>
@@ -111,9 +121,12 @@
               @if(!hospitalLevel()){
               <th class="text-center" rowspan="2">ระดับ</th>
               }
+              <th class="text-center" rowspan="2">จำนวน<br>เตียง</th>
+              <th class="text-center" rowspan="2">จำนวน<br>เดือน</th>
               <th class="text-center" rowspan="2">จำนวน<br>(ราย)</th>
-              <th class="text-center" colspan="3">LOS</th>
               <th class="text-center" rowspan="2">RW=0<br>(ราย)</th>
+              <th class="text-center" colspan="4">LOS</th>
+              <th class="text-center" rowspan="2" pkTooltip="จำนวนกลุ่ม DRG">จำนวน<br>กลุ่ม<br>DRG</th>
               <th class="text-center" colspan="2">AdjRW</th>
               <th class="text-center" colspan="2">เสียชีวิต</th>
               <!-- <th class="text-center" colspan="2">Refer In</th> -->
@@ -121,7 +134,8 @@
             <tr>
               <th class="text-center">วัน</th>
               <th class="text-center">วัน/ราย</th>
-              <th class="text-center" pkTooltip="ราย/วัน">ActiveBed</th>
+              <th class="text-center" pkTooltip="อัตราการครองเตียง (%)">อัตรา<br>ครองเตียง</th>
+              <th class="text-center" pkTooltip="เตียง (ราย/วัน)">ActiveBed</th>
               <th class="text-center">รวม</th>
               <th class="text-center">CMI</th>
               <th class="text-center">ราย</th>
@@ -135,16 +149,21 @@
             <tr>
               <td class="text-center">{{ $index + 1 }}</td>
               <td class="text-center">{{ hospital.hcode }}</td>
-              <td>{{ hospital.hname }}</td>
+              <td class="max-w-xs truncate overflow-x-hidden" [pkTooltip]="hospital.hname+' จ.'+ hospital.chwname" pkTooltipType="secondary" pkTooltipPosition="bottom" style="max-width: 250px;">
+                {{ hospital.hname }} จ.{{ hospital.chwname }}
+              </td>
               @if(!hospitalLevel()){
               <td class="text-center">{{ hospital.splevel }}</td>
               }
-              <!-- <td class="text-right">{{ hospital.bed | number}}</td> -->
+              <td class="text-right">{{ hospital.bed | number}}</td>
+              <td class="text-center">{{ hospital.month }}</td>
               <td class="text-right">{{ hospital.cases | number}}</td>
+              <td class="text-right">{{ hospital.rw0_cases | number}}</td>
               <td class="text-right">{{ hospital.actlos | number}}</td>
               <td class="text-right">{{ hospital.actlos/hospital.cases | number:'1.2-2' }}</td>
-              <td class="text-right">{{ hospital.actlos/dayCount() | number:'1.1-1' }}</td>
-              <td class="text-right">{{ hospital.rw0_cases | number}}</td>
+              <td class="text-right">{{ hospital.actlos/(hospital.bed || 1)/hospital.days*100 | number:'0.2-2' }}</td>
+              <td class="text-right">{{ hospital.actlos/hospital.days | number:'1.1-1' }}</td>
+              <td class="text-right">{{ hospital.drg_group_cnt | number}}</td>
               <td class="text-right">{{ hospital.adjrw | number:'1.2-2' }}</td>
               <td class="text-right text-green-600 font-bold">{{ hospital.cmi | number:'1.4-4' }}</td>
               <td class="text-right">{{ hospital.dead_cases | number}}</td>

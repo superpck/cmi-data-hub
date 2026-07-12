@@ -1,11 +1,21 @@
 table {
   width: 100%;
-  // border-collapse: collapse;
+  border-collapse: collapse;
+  border: 1px solid rgb(216, 216, 216);
   font-size: 16px;
 
-  td {
+  td,
+  th {
+    border: 1px solid #aaa;
     height: auto;
   }
+}
+
+.tab-active {
+  border: 1px solid rgb(216, 216, 216);
+  border-bottom: 4px solid rgb(171, 169, 169);
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
 }
 
 .table-actions {

@@ -36,6 +36,7 @@ export class ReportCmiHospital implements OnInit {
   hospitalLevel = signal<string>('A');
   provinceCode = signal<string>('');
   regionCode = signal<string>('');
+  typeYear = signal<string>('ปีงบประมาณ');
 
   dataList = signal<any[]>([]);
   sumHospitals = signal<any[]>([]);
@@ -82,9 +83,14 @@ export class ReportCmiHospital implements OnInit {
   ngOnInit(): void {
     this.yearStart.set(dayjs().subtract(dayjs().month() < 9 ? 1 : 0, 'year').year() + 543);
     const currentYear = dayjs().year();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       this.yearList.push(currentYear - i + 543);
     }
+  }
+
+  clearData(){
+    this.dataList.set([]);
+    this.sumHospitals.set([]);
   }
 
   async process() {
@@ -98,13 +104,14 @@ export class ReportCmiHospital implements OnInit {
     this.loading.set(true);
     try {
       const options = {
-        isFiscalYear: true,
+        isFiscalYear: this.typeYear() === 'ปีงบประมาณ',
         year: this.yearStart(),
         splevel: this.hospitalLevel(),
         chwcode: this.provinceCode(),
         region: this.regionCode(),
       };
       const result: any = await this.cmiService.reportHospitalCMI(options);
+      // console.log('result', result);
       let sumHospitals: any[] = [];
       const columnNumber = [
         'target', 'drg_group_cnt', 'cases', 'actlos', 'los', 'los_over', 'rw0_cases',
@@ -116,46 +123,17 @@ export class ReportCmiHospital implements OnInit {
           row[col] = Number(row[col]) || 0;
         }
         row.actlos = row.actlos || row.los;
-        /* 
-          actlos :  2466
-          adjrw :  "669.8485"
-          cases :  733
-          chwcode :  "11"
-          cmi :  "0.9138"
-          date_process :  "2024-01-30T21:17:04.000Z"
-          dead_adjrw :  "50.1307"
-          dead_cases :  24
-          dead_cmi :  2.0888
-          dead_los :  113
-          dead_rw0 :  0
-          drg_group_cnt :  195
-          hcode :  "10754"
-          hname :  "โรงพยาบาลบางจาก"
-          hname_abbr :  "รพ.บางจาก"
-          lastupdate :  "2024-01-30T21:17:04.000Z"
-          los_over :  201
-          mm :  10
-          monthly :  "202210"
-          price :  "5982256.00"
-          referin_adjrw :  "0.0000"
-          referin_cases :  0
-          referin_cmi :  null
-          referin_los :  0
-          referin_rw0 :  0
-          region :  6
-          rw0_cases :  0
-          splevel :  "F1"
-          target :  "0.60"
-          yy :  2022
-  */
-
         const ind = sumHospitals.findIndex((item: any) => item.hcode === row.hcode);
+        const dayInMonth = dayjs(`${row.yy}-${row.mm}-01`).daysInMonth();
         if (ind < 0) {
-          sumHospitals.push(row);
+          sumHospitals.push({ ...row, month: 1, days: dayInMonth });
         } else {
           for (const col of columnNumber) {
             sumHospitals[ind][col] += row[col];
           }
+          sumHospitals[ind]['month'] += 1;
+          sumHospitals[ind]['days'] += dayInMonth;
+          sumHospitals[ind]['drg_group_cnt'] = sumHospitals[ind]['drg_group_cnt'] > row['drg_group_cnt']? row['drg_group_cnt'] : sumHospitals[ind]['drg_group_cnt']; //Math.max(sumHospitals[ind]['drg_group_cnt'], row['drg_group_cnt']);
           sumHospitals[ind]['cmi'] = sumHospitals[ind]['adjrw'] / (sumHospitals[ind]['cases'] - sumHospitals[ind]['rw0_cases']);
           sumHospitals[ind]['dead_cmi'] = sumHospitals[ind]['dead_adjrw'] / (sumHospitals[ind]['dead_cases'] - sumHospitals[ind]['dead_rw0']);
         }

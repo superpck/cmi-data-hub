@@ -13,7 +13,7 @@
   </div>
   <div class="pk-card-body">
     <div class="flex flex-wrap gap-4">
-      <div class="formControl">
+      <div class="inputControl">
         <label>จำหน่ายเดือน</label>
         <select name="month" [(ngModel)]="month" [disabled]="loading()" (change)="resetVar()" style="width: 120px;">
           @for (item of thMonth; track $index) {
@@ -21,7 +21,7 @@
           }
         </select>
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>ปี</label>
         <select name="year" [(ngModel)]="year" [disabled]="loading()" (change)="resetVar()" style="width: 85px;">
           @for (item of yearList; track item) {
@@ -29,7 +29,7 @@
           }
         </select>
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>เงื่อนไข</label>
         <select name="searchType" [(ngModel)]="searchType" [disabled]="loading()"
           (change)="resetVar(); searchValue = ''">
@@ -48,7 +48,7 @@
           <option value="PRICEL">ค่ารักษาน้อยกว่า</option>
         </select>
       </div>
-      <div class="formControl">
+      <div class="inputControl">
         <label>คำค้นตามเงื่อนไข</label>
         @if (searchType !== 'DATEADM' && searchType !== 'DATEDSC') {
         <input type="text" name="searchValue" [(ngModel)]="searchValue" [disabled]="loading()" (change)="resetVar()"

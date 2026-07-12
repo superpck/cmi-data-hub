@@ -16,7 +16,7 @@ import { DecimalPipe } from '@angular/common';
 import {
   PkAlertService, PkDatePipe, PkExportButton, PkIcon, PkModal,
   PkModalBody, PkModalFooter, PkModalHeader,
-  PkTabsModule, PkToastrService
+  PkTabsModule, PkToastrService, PkTooltip
 } from 'ngx-pk-ui';
 import dayjs from 'dayjs';
 import * as echarts from 'echarts';
@@ -31,7 +31,7 @@ import { ExcelService } from '../../../services/excel.service';
     FormsModule, DecimalPipe, PkDatePipe,
     PkIcon, PkModal, PkModalHeader,
     PkModalBody, PkModalFooter, PkTabsModule,
-    PkExportButton
+    PkExportButton, PkTooltip
   ],
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
@@ -193,7 +193,7 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
   data: any[] = [];
   dataList: any[] = [];
   dataShow: any[] = [];
-  sumMonthly: any[] = [];
+  sumMonthly = signal<any[]>([]);
   currentRow: any = {};
   structure: string[] = [];
   lineNo = 0;
@@ -217,10 +217,10 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get paginatedSummary(): any[] {
     const start = (this.currentPageSummary - 1) * +this.itemsPerPageSummary;
-    return this.sumMonthly.slice(start, start + +this.itemsPerPageSummary);
+    return this.sumMonthly().slice(start, start + +this.itemsPerPageSummary);
   }
   get totalPagesSummary(): number {
-    return Math.ceil(this.sumMonthly.length / +this.itemsPerPageSummary);
+    return Math.ceil(this.sumMonthly().length / +this.itemsPerPageSummary);
   }
   get filteredDetail(): any[] {
     if (!this.searchText) return this.dataList;
@@ -314,7 +314,7 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
           // Check if all files are processed
           if (this.processingFiles >= this.totalFilesToProcess) {
             this.dataList = this.accumulatedDataList;
-            this.sumMonthly = [...this.accumulatedSumMonthly].sort((a, b) => a.monthly.localeCompare(b.monthly));
+            this.sumMonthly.set([...this.accumulatedSumMonthly].sort((a, b) => a.monthly.localeCompare(b.monthly)));
             this.lineNo = this.dataList.length;
             
             // Prepare duplicate ANs summary
@@ -536,7 +536,7 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
     // Initialize accumulators
     if (append) {
       this.accumulatedDataList = [...this.dataList];
-      this.accumulatedSumMonthly = [...this.sumMonthly];
+      this.accumulatedSumMonthly = [...this.sumMonthly()];
       this.uploadStatus.set(`กำลังอ่านไฟล์เพิ่ม ${files.length} ไฟล์...`);
     } else {
       this.accumulatedDataList = [];
@@ -557,7 +557,7 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.loading()) return;
     
     this.dataList = [];
-    this.sumMonthly = [];
+    this.sumMonthly.set([]);
     this.data = [];
     this.lineNo = 0;
     this.uploadCompleted.set(false);
@@ -1602,7 +1602,7 @@ export class UploadComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async onExportSummary(): Promise<void> {
     this.loading.set(true);
-    await this.excel.exportAsExcelFile(this.sumMonthly, 'cmi_monthly', '_' + dayjs().format('YYYYMMDD_HHmmss'));
+    await this.excel.exportAsExcelFile(this.sumMonthly(), 'cmi_monthly', '_' + dayjs().format('YYYYMMDD_HHmmss'));
     this.loading.set(false);
     this.cdr.markForCheck();
   }
