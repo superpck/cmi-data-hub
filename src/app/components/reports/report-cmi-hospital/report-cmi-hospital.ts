@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed, ChangeDetectionStrategy } 
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { PkIcon, PkToastrService, PkTooltip } from 'ngx-pk-ui';
+import { PkIcon, PkToastrService, PkTooltip, PkDatagridModule } from 'ngx-pk-ui';
 import dayjs from 'dayjs';
 import { CmiService } from '../../../services/cmi.service';
 import { NgxEchartsDirective } from 'ngx-echarts';
@@ -12,7 +12,7 @@ import { EChartsOption } from 'echarts';
   selector: 'app-report-cmi-hospital',
   imports: [
     CommonModule, FormsModule, RouterLink,
-    PkIcon, PkTooltip,
+    PkIcon, PkTooltip, PkDatagridModule,
     NgxEchartsDirective
   ],
   templateUrl: './report-cmi-hospital.html',

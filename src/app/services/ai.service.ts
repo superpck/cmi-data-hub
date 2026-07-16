@@ -1,19 +1,46 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import CONFIG from '../configs/config';
+import Config from '../configs/config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AIService {
   private http = inject(HttpClient);
+  private readonly url = Config.apiEndpoint.drg_data;
 
   createHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'x-api-key': CONFIG.apiKey
+      'x-api-key': Config.apiKey
     });
+  }
+
+  async aiCompletions(messages: any): Promise<any> {
+    try {
+      if (!messages || !Array.isArray(messages) || messages.length < 2) {
+        return Promise.reject('Messages must be a non-empty array');
+      }
+
+      const result: any = await firstValueFrom(
+        this.http.post(`${this.url}/AI/completions`, { messages }).pipe(
+          catchError((error: HttpErrorResponse) => {
+            // error.error คือ JSON Body ที่ Angular parser ให้แล้ว
+            // ใช้ of() เพื่อส่งค่ากลับเข้าไปใน stream ในฐานะ "ค่าปกติ" (ไม่ใช่ error)
+            return of(error.error);
+          })
+        )
+      );
+
+      // const result1: any = await firstValueFrom(this.http.post<any>(`${this.url}/AI/completions`, { messages }));
+      return result;
+    } catch (error: any) {
+      console.error('Error in aiCompletions:', error.message || error);
+      return error;
+    }
   }
 
   aiProcess(payload: any): Promise<any> {
@@ -21,11 +48,11 @@ export class AIService {
       if (!payload || !payload.user) {
         return Promise.reject('Payload must have a user message');
       }
-      const url = `${CONFIG.apiEndpoint.ai.url}${CONFIG.apiEndpoint.ai.message_endpoint}`;
+      const url = `${Config.apiEndpoint.ai.url}${Config.apiEndpoint.ai.message_endpoint}`;
       const headers = this.createHeaders();
       console.log('AI API URL:', url);
       const payloadData = {
-        model: CONFIG.aiModel,
+        model: Config.aiModel,
         messages: [
           {
             role: "system",
@@ -42,8 +69,8 @@ export class AIService {
       return firstValueFrom(
         this.http.post<any>(url, payloadData, { headers })
       );
-    } catch (error) {
-      console.error('Error in aiProcess:', error);
+    } catch (error: any) {
+      console.error('Error in aiProcess:', error.message || error);
       return Promise.reject(error);
     }
   }

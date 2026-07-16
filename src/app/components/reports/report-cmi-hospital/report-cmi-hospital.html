@@ -1,13 +1,16 @@
 <div class="layout">
-  <nav class="pk-breadcrumb">
-    <ol class="pk-breadcrumb-list">
-      <li class="pk-breadcrumb-item">Home</li>
-      <li class="pk-breadcrumb-item cursor-pointer" routerLink="/reports">รายงาน</li>
-      <li class="pk-breadcrumb-item pk-breadcrumb-item--active cursor-pointer">
-        CMI รายสถานพยาบาล
-      </li>
-    </ol>
-  </nav>
+  <div class="flex items-center justify-between mx-1">
+    <nav class="pk-breadcrumb">
+      <ol class="pk-breadcrumb-list">
+        <li class="pk-breadcrumb-item">Home</li>
+        <li class="pk-breadcrumb-item cursor-pointer" routerLink="/reports">รายงาน</li>
+        <li class="pk-breadcrumb-item pk-breadcrumb-item--active cursor-pointer">
+          CMI รายสถานพยาบาล
+        </li>
+      </ol>
+    </nav>
+    <div class="text-orange-500">Beta version</div>
+  </div>
 
   <div class="pk-card my-2 pk-font-bai-jamjuree">
     <div class="pk-card-header flex flex-wrap justify-between font-bold text-sky-700 items-center gap-2">
@@ -87,7 +90,8 @@
 
         <div class="inputControl">
           <label>รหัสจังหวัด:</label>
-          <input type="text" [disabled]="loading()" [(ngModel)]="provinceCode" (ngModelChange)="clearData()" placeholder="กรอกเฉพาะรหัส" class="w-20 h-10" />
+          <input type="text" [disabled]="loading()" [(ngModel)]="provinceCode" (ngModelChange)="clearData()"
+            placeholder="กรอกเฉพาะรหัส" class="w-20 h-10" />
         </div>
 
         <div class="inputControl">
@@ -112,6 +116,72 @@
         <div style="text-align: center; font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem;">
           จำนวนผู้ป่วยในจำแนกตามสถานพยาบาล (ราย) <br>{{ typeYear() }} {{ yearStart() }}
         </div>
+
+        <!-- <pk-datagrid [pkDgLoading]="loading()">
+          <pk-dg-header [style.width.px]="30">#</pk-dg-header>
+          <pk-dg-header [pkDgSort]="'hcode'" [pkDgFilter]="'hcode'" [style.width.px]="90">Hospcode</pk-dg-header>
+          <pk-dg-header [pkDgSort]="'hname'" [pkDgFilter]="'hname'" [style.width.px]="240">Hospital Name</pk-dg-header>
+          @if(!hospitalLevel()){
+          <pk-dg-header class="text-center">ระดับ</pk-dg-header>
+          }
+          <pk-dg-header class="text-center" [pkDgSort]="'bed'" [style.width.px]="100">จำนวนเตียง</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'month'" [style.width.px]="100">จำนวนเดือน</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'cases'" [style.width.px]="100">จำนวน (ราย)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'rw0_cases'" [style.width.px]="100">RW=0 (ราย)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'actlos'" [style.width.px]="100">LOS (วัน)</pk-dg-header>
+          <pk-dg-header class="text-center" [style.width.px]="80">LOS
+            (วัน/ราย)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'actlos/(bed || 1)/days*100'"
+            [style.width.px]="100">อัตราครองเตียง (%)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'actlos/days'" [style.width.px]="100">ActiveBed
+            (ราย/วัน)
+          </pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'drg_group_cnt'" [style.width.px]="100">จำนวนกลุ่ม DRG</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'adjrw'" [style.width.px]="100">AdjRW (รวม)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'cmi'" [style.width.px]="100">CMI</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'dead_cases'" [style.width.px]="100">เสียชีวิต (ราย)</pk-dg-header>
+          <pk-dg-header class="text-center" [pkDgSort]="'dead_cmi'" [style.width.px]="100">เสียชีวิต (CMI)</pk-dg-header>
+
+
+          <pk-dg-rows *pkDgRows="let row of sumHospitals();index as i" [pkDgRow]="row">
+            <pk-dg-column>{{ i + 1 }}</pk-dg-column>
+            <pk-dg-column>{{ row.hcode }}</pk-dg-column>
+            <pk-dg-column>
+              <div class="max-w-xs truncate overflow-x-hidden" [pkTooltip]="row.hname+' จ.'+ row.chwname"
+                pkTooltipType="secondary" pkTooltipPosition="bottom" style="max-width: 250px;">
+                {{ row.hname }} จ.{{ row.chwname }}
+              </div>
+            </pk-dg-column>
+            @if(!hospitalLevel()){
+            <pk-dg-column class="text-center">{{ row.splevel }}</pk-dg-column>
+            }
+            <pk-dg-column class="text-right">{{ row.bed | number}}</pk-dg-column>
+            <pk-dg-column class="text-center">{{ row.month }}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.cases | number}}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.rw0_cases | number}}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.actlos | number}}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.actlos/row.cases | number:'1.2-2' }}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.actlos/(row.bed || 1)/row.days*100 | number:'0.2-2'
+              }}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.actlos/row.days | number:'1.1-1' }}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.drg_group_cnt | number}}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.adjrw | number:'1.2-2' }}</pk-dg-column>
+            <pk-dg-column class="text-right text-green-600 font-bold">{{ row.cmi | number:'1.4-4' }}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.dead_cases | number}}</pk-dg-column>
+            <pk-dg-column class="text-right">{{ row.dead_cmi | number:'1.2-2' }}</pk-dg-column>
+          </pk-dg-rows>
+
+          <pk-dg-footer>
+            <div
+              style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:4px 8px;">
+              <pk-dg-pagination #pagination [pkDgPageSize]="10" [rowCount]="sumHospitals().length">
+                <pk-dg-page-size [pkPageSizeList]="[5, 10, 20, 50]">Rows per page</pk-dg-page-size>
+                {{ pagination.firstItem + 1 }} - {{ pagination.lastItem + 1 }} of {{ sumHospitals().length }} rows
+              </pk-dg-pagination>
+            </div>
+          </pk-dg-footer>
+        </pk-datagrid> -->
+
         <table class="pk-table pk-table-sm pk-table-bordered">
           <thead>
             <tr>
@@ -129,7 +199,7 @@
               <th class="text-center" rowspan="2" pkTooltip="จำนวนกลุ่ม DRG">จำนวน<br>กลุ่ม<br>DRG</th>
               <th class="text-center" colspan="2">AdjRW</th>
               <th class="text-center" colspan="2">เสียชีวิต</th>
-              <!-- <th class="text-center" colspan="2">Refer In</th> -->
+              <th class="text-center" colspan="2">Refer In</th>
             </tr>
             <tr>
               <th class="text-center">วัน</th>
@@ -140,8 +210,8 @@
               <th class="text-center">CMI</th>
               <th class="text-center">ราย</th>
               <th class="text-center">CMI</th>
-              <!-- <th class="text-center">ราย</th>
-            <th class="text-center">CMI</th> -->
+              <th class="text-center">ราย</th>
+              <th class="text-center">CMI</th>
             </tr>
           </thead>
           <tbody>
@@ -149,7 +219,8 @@
             <tr>
               <td class="text-center">{{ $index + 1 }}</td>
               <td class="text-center">{{ hospital.hcode }}</td>
-              <td class="max-w-xs truncate overflow-x-hidden" [pkTooltip]="hospital.hname+' จ.'+ hospital.chwname" pkTooltipType="secondary" pkTooltipPosition="bottom" style="max-width: 250px;">
+              <td class="max-w-xs truncate overflow-x-hidden" [pkTooltip]="hospital.hname+' จ.'+ hospital.chwname"
+                pkTooltipType="secondary" pkTooltipPosition="bottom" style="max-width: 250px;">
                 {{ hospital.hname }} จ.{{ hospital.chwname }}
               </td>
               @if(!hospitalLevel()){
@@ -168,8 +239,8 @@
               <td class="text-right text-green-600 font-bold">{{ hospital.cmi | number:'1.4-4' }}</td>
               <td class="text-right">{{ hospital.dead_cases | number}}</td>
               <td class="text-right">{{ hospital.dead_cmi | number:'1.2-2' }}</td>
-              <!-- <td class="text-right">{{ hospital.referin_cases | number}}</td>
-            <td class="text-right">{{ hospital.referin_cmi | number:'1.2-2' }}</td> -->
+              <td class="text-right">{{ hospital.referin_cases | number}}</td>
+              <td class="text-right">{{ hospital.referin_cmi | number:'1.2-2' }}</td>
             </tr>
             }
           </tbody>

@@ -11,9 +11,9 @@
     <pk-icon iconSet="google" name="upload" [size]="18" />
     <span class="text-lg">Upload ข้อมูลผู้ป่วยในไปยัง CMI@MOPH</span>
   </div>
-  <div class="m-2">
+  <div class="m-2 pb-4">
     <!-- header -->
-    <div>
+    <div class="px-2">
       <div class="text-red-500 text-lg my-4 font-bold">
         ระบบนี้ยังอยู่ในช่วงทดสอบ หากมีการ click 'ส่งข้อมูลไปยัง CMI@MOPH' ระบบจะบันทึกลงในตารางทดสอบเท่านั้น
       </div>
@@ -109,10 +109,12 @@
       }
     </div>
 
+    @if (dataList.length > 0) {
     <pk-tabs customClass="mt-2 mb-4 pk-font-bai-jamjuree">
       <pk-tab [active]="activeTab() === 'upload'">
         <pk-tab-title (tabClick)="activeTab.set('upload')">
-          <div class="flex items-center text-lg gap-1" pkTooltip="ข้อมูลผู้ป่วยในราย case จากข้อมูลที่ Upload" pkTooltipType="secondary" pkTooltipPosition="bottom">
+          <div class="flex items-center text-lg pk-font-mitr gap-1 text-blue-600" pkTooltip="ข้อมูลผู้ป่วยในราย case จากข้อมูลที่ Upload"
+            pkTooltipType="secondary" pkTooltipPosition="bottom">
             <pk-icon iconSet="google" name="folder_open" [size]="18"></pk-icon>
             <span>ทะเบียนผู้ป่วยใน ({{dataList.length | number}})</span>
           </div>
@@ -174,7 +176,8 @@
                       <td class="border px-2 py-1 text-right">{{ row.WTLOS | number: '0.2-2' }}</td>
                       <td class="border px-2 py-1 text-center">{{ row.AGE }}</td>
                       <td class="border px-2 py-1 font-mono">{{ row.PDX }}</td>
-                      <td class="border px-2 py-1 text-left max-w-xs truncate" [pkTooltip]="row.SDX" pkTooltipType="secondary" pkTooltipPosition="bottom">
+                      <td class="border px-2 py-1 text-left max-w-xs truncate" [pkTooltip]="row.SDX"
+                        pkTooltipType="secondary" pkTooltipPosition="bottom">
                         {{ row.SDX }}
                       </td>
                       <td class="border px-2 py-1"
@@ -202,7 +205,7 @@
                   </tbody>
                 </table>
               </div>
-              @if (dataList.length > 0) {
+
               <div class="px-2 w-full flex justify-between items-center mt-2 bg-slate-100 py-1">
                 <div class="text-slate-500 text-sm">
                   ต่อหน้า
@@ -222,16 +225,17 @@
                     (click)="setPageDetail(currentPageDetail + 1)" aria-label="หน้าถัดไป">⏵</button>
                 </div>
               </div>
-              }
+
             </div>
           </div>
 
         </pk-tab-body>
       </pk-tab>
-      @if (dataList.length > 0) {
+
       <pk-tab [active]="activeTab() === 'summary'">
         <pk-tab-title (tabClick)="activeTab.set('summary')">
-          <div class="flex items-center text-lg gap-1" pkTooltip="สรุปรายงานเชิงคุณภาพ" pkTooltipType="secondary" pkTooltipPosition="bottom">
+          <div class="flex items-center text-lg pk-font-mitr gap-1 text-blue-600" pkTooltip="สรุปรายงานเชิงคุณภาพ" pkTooltipType="secondary"
+            pkTooltipPosition="bottom">
             <pk-icon iconSet="google" name="analytics" [size]="18"></pk-icon>
             <span>สรุปข้อมูลที่ Upload</span>
           </div>
@@ -1002,8 +1006,9 @@
           </div>
         </pk-tab-body>
       </pk-tab>
-      }
+      
     </pk-tabs>
+    }
   </div>
 </div>
 

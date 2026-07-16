@@ -5,6 +5,15 @@
 รูปแบบอ้างอิงจาก [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 และโครงการนี้ปฏิบัติตาม [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.5.2] - 2026-07-16
+### เพิ่มเติม
+- เพิ่มหน้า IPD Summary by AI
+
+## [1.5.1] - 2026-07-10
+### เพิ่มเติม
+- ปรับหน้า Upload CSV
+- เพิ่ม content ในรายงาน CMI แยกรายสถานพยาบาล (CMI Dead, CMI Refer)
+
 ## [1.5.0] - 2026-06-01
 ### เพิ่มเติม
 - เพิ่มรายงาน CMI แยกรายสถานพยาบาล

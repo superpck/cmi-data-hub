@@ -7,9 +7,8 @@ import CONFIG from '../../configs/config';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const isDrgRequest = req.url.startsWith(CONFIG.apiEndpoint.drg_data);
-  const tokenCMI = sessionStorage.getItem(CONFIG.tokenName);
-  const tokenDRG = sessionStorage.getItem(CONFIG.drgTokenName);
-  const token = isDrgRequest ? tokenDRG : tokenCMI;
+  const tokenName = isDrgRequest ? CONFIG.drgTokenName : CONFIG.tokenName;
+  const token = sessionStorage.getItem(tokenName);
 
   const authReq = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
@@ -19,9 +18,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
         if (isDrgRequest) {
-          sessionStorage.removeItem(CONFIG.drgTokenName);
+          // sessionStorage.removeItem(CONFIG.drgTokenName);
         } else {
-          sessionStorage.removeItem(CONFIG.tokenName);
+          // sessionStorage.removeItem(CONFIG.tokenName);
           router.navigate(['/login']);
         }
       }
