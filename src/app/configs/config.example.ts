@@ -1,16 +1,14 @@
+import { version, subVersion } from '../../../package.json';
+
 export default {
   appName: "AI Prompt",
   appDescription: "A collection of AI prompts for Deep Rock Galactic.",
-  appVersion: "0.0.1",
+  version,
+  subVersion,
   apiEndpoint:
   {
     user: "https://myurl/api/user",
     drg_data: "https://myurl/drg/api",
-    ai: {
-      url: "https://myurl/ai-api",
-      chat_endpoint: "/v1/chat/interaction",
-      message_endpoint: "/v1/chat/message",
-    } ,
     callback: "https://myurl/callback"
   },
   theme: {
@@ -20,4 +18,5 @@ export default {
     textColor: "#333333",
   },
   tokenName: "My-Token",
+  drgTokenName: "My-DRG-Token",
 };
