@@ -4,6 +4,9 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { PkAlertService, PkIcon, PkTabsModule, PkToastrService } from 'ngx-pk-ui';
 import { AIService } from '../../services/ai.service';
+import { DrgsService } from '../../services/drgs.service';
+import { AuthService } from '../../services/auth.service';
+import dayjs from 'dayjs';
 
 interface AdmissionRecord {
   id: string;
@@ -23,10 +26,13 @@ interface AdmissionRecord {
 })
 export class IpdAiSummary {
   private aiService = inject(AIService);
+  private drgService = inject(DrgsService);
+  private auth = inject(AuthService);
   private toastr = inject(PkToastrService);
   private alert = inject(PkAlertService);
   private fb = inject(FormBuilder);
 
+  userInfo: any = computed(() => this.auth.decodeToken());
   records = signal<AdmissionRecord[]>([]);
   activeId = signal<string | null>(null);
   anInput = signal('');
@@ -139,8 +145,8 @@ export class IpdAiSummary {
     this.form.reset({
       sex: this.sexOptions[0],
       dischargeStatus: this.dischargeStatusOptions[1],
-      // age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',
-      age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '',
+      // age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',weight: '', height: '',
+      age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '', weight: '60', height: '168',
       // cc: '',
       cc: `เหนื่อยมากขึ้น เบื่ออาหาร ปวดเอวมาก มียาแก้ปวดพอทุเลา เดินได้สะดวก`,
       // pi: '',
@@ -287,17 +293,17 @@ SPEP 21/4/69 : Monoclonal gammopathy (TP 13 g/dl, M spike 5.0 g/dl)
 
     // console.log('PayloadThai to AI API:', payloadThai);
 
-    let systemMessageEnglish1 = "You are a Medical Coder AI expert. Analyze the patient information and summarize the results in JSON format only, with the following keys: discharge_summary, principal_diagnosis, icd_10_pdx, secondary_diagnosis (if none, put None), procedure.";
+    let systemMessageEnglish1 = "You are a Medical Coder AI expert. Analyze the patient information and summarize the results in JSON format only, with the following keys: discharge_summary, principal_diagnosis, code icd-10 2016, secondary_diagnosis, code icd-10 2016 (if none put []), procedure, code icd-cm-9 2015.";
     const systemMessageEnglish2 = `
     You are an expert Clinical Documentation Improvement (CDI) Specialist and Certified Medical Coder. Your task is to analyze the provided patient medical records and extract clinical information for coding, billing, and DRG assignment.`+
 
-  `Strictly adhere to the following coding standards and guidelines:
+      `Strictly adhere to the following coding standards and guidelines:
 1. Diagnoses: Must be coded using ICD-10 (2016 version).
 2. Procedures: Must be coded using ICD-9-CM (2015 version).
 3. DRG Assignment: Calculate and assign the most appropriate Diagnosis-Related Group (DRG) based on the principal diagnosis, procedures performed, and secondary diagnoses (specifically evaluating for the presence of CC/MCC - Complications/Comorbidities or Major Complications).
 `+
-"Output your response STRICTLY in valid JSON format. Do not include any markdown formatting (such as ```json), explanations, or conversational text outside the JSON object."+
-`
+      "Output your response STRICTLY in valid JSON format. Do not include any markdown formatting (such as ```json), explanations, or conversational text outside the JSON object." +
+      `
 Use the following exact JSON schema:
 {
   "discharge_summary": "A concise clinical summary of the patient's hospital stay, including chief complaint, hospital course, and condition at discharge.",
@@ -418,11 +424,51 @@ If there are no secondary diagnoses or procedures, use an empty array [] for tho
         return choice;
       }));
     }
-    const responseData = result?.data || {};
-    this.aiResponse.set({ ...responseData, processTimeMS: result?.processTimeMS });
-    this.toastr.info(result?.status || result?.message || result?.id, result?.choices ? 'Success!' : 'Failed!', { position: 'bottom-right', progress: true });
+    let responseData = result?.data || {};
+    const drg = this.drgCalculate(responseData);
+    this.aiResponse.set({ ...responseData, drg, processTimeMS: result?.processTimeMS });
+    this.toastr.success('', 'Success', { position: 'bottom-right', progress: true });
     this.activeTab.set('ai-result');
     this.isLoading.set(false);
+  }
+
+  async drgCalculate(row: any): Promise<any> {
+    const age = this.form.value.age;
+    const dbo = dayjs().subtract(Number(age), 'year').format('YYYY-MM-DD');
+    if (this.aiResponse) {
+      let payload: any = {
+        age: this.form.value.age || '',
+        an: 'temp', dbo,
+        hcode: this.userInfo()?.hospcode || this.userInfo()?.hcode9 || '',
+        los: this.form.value.los || 1,
+        actlos: this.form.value.los || 1,
+        sex: this.form.value.sex?.toString() || '',
+        dischs: '2',
+        discht: '1', //this.form.value.dischargeStatus || '',
+        weight: this.form.value.weight || '',
+        pdx: (row?.choices?.[0]?.message?.content?.principal_diagnosis?.code || '').replace(/\./g, ''),
+        sdx: row?.choices?.[0]?.message?.content?.secondary_diagnosis
+          .map((r: any) => r?.code.replace(/\./g, '')),
+        proc: row?.choices?.[0]?.message?.content?.procedure
+          .map((r: any) => r?.code.replace(/\./g, '')),
+
+      };
+      console.log('DRG payload:', payload);
+      const drgResult: any = await this.drgService.drgSeeker('6', [payload]);
+      console.log('DRG result:', drgResult);
+      let drg = Array.isArray(drgResult?.data) && drgResult.data.length > 0 ? drgResult.data[0] : {};
+      console.log('DRG data:', drg);
+      if (drg && drg?.drg) {
+        const result: any = await this.drgService.drgName(drg.drg);
+        console.log('DRG name result:', result);
+        if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
+          drg.drgname = result.data[0].drgname;
+        }
+      }
+      return drg;
+    } else {
+      return {};
+    }
   }
 
   async nl2br(text: string): Promise<string> {

@@ -447,15 +447,15 @@
 
                 <div class="p-1">
                   <span class="font-bold text-orange-600 dark:text-yellow-500">
-                    Principal Diagnosis ({{ (choice?.message?.content.principal_diagnosis + choice?.message?.content.icd_10_pdx).length | number }} chars)
+                    Principal Diagnosis
                   </span>
                   <div
                     class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
-                    {{ choice?.message?.content.principal_diagnosis }}
+                    {{ choice?.message?.content.principal_diagnosis?.description }}
                     <a class="text-green-700 font-bold mx-2"
                       href="https://icd.who.int/browse10/2016/en#/{{ choice?.message?.content.icd_10_pdx }}"
                       target="_blank">
-                      {{ choice?.message?.content.icd_10_pdx }}
+                      {{ choice?.message?.content.principal_diagnosis?.code }}
                     </a>
                   </div>
                 </div>
@@ -468,20 +468,63 @@
                     @if (choice?.message?.content?.secondary_diagnosis.length>0) {
                     @for (sdx of choice?.message?.content?.secondary_diagnosis; track sdx){
                     <!-- {{ choice?.message?.content?.secondary_diagnosis }} -->
-                      <div>{{ $index + 1 }}.{{ sdx }}</div>
+                    <div>{{ $index + 1 }}.{{ sdx.code }} {{ sdx.description }}</div>
                     }
                     }
                   </div>
                 </div>
                 <div class="p-1">
                   <span class="font-bold text-orange-600 dark:text-yellow-500">
-                    Procedure ({{ choice?.message?.content.procedure.length | number }} chars)
+                    Procedure ({{ choice?.message?.content.procedure.length | number }} items)
                   </span>
                   <div
                     class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
-                    {{ choice?.message?.content.procedure }}
+                    @for (proc of choice?.message?.content?.procedure; track proc){
+                    <div>{{ $index + 1 }}.{{ proc.code }} {{ proc.description }}</div>
+                    }
                   </div>
                 </div>
+                @if(aiResponse()?.drg){
+                <div class="p-1">
+                  <span class="font-bold text-orange-600 dark:text-yellow-500">
+                    DRG Calulation
+                  </span>
+                  <pre>{{ aiResponse()?.drg | json }} </pre>
+                  <div
+                    class="flex items-center bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
+                    <span class=mr-3>
+                      DRG Group:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.drg }}</span>
+                    </span>
+                    <span class=mr-3>
+                      DRG Name:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.drgName }}</span>
+                    </span>
+                    <span class=mr-3>
+                      AdjRW:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.adjRW | number:
+                        '0.4-4' }}</span>
+                    </span>
+                    <span class=mr-3>
+                      WtLos:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.wtLos | number:
+                        '0.2-2' }}</span>
+                    </span>
+                    <span class=mr-3>
+                      OT:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.ot | number }}</span>
+                    </span>
+                    <span class=mr-3>
+                      Error:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.err || '' }}</span>
+                    </span>
+                    <span class=mr-3>
+                      Warning:
+                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.warn || '' }}</span>
+                    </span>
+                  </div>
+                </div>
+                }
                 <div class="p-1">
                   <span class="font-bold text-orange-600 dark:text-yellow-500">
                     Reasoning ({{choice?.message?.reasoning.length | number}} chars)
