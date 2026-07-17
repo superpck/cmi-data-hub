@@ -145,8 +145,8 @@ export class IpdAiSummary {
     this.form.reset({
       sex: this.sexOptions[0],
       dischargeStatus: this.dischargeStatusOptions[1],
-      // age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',weight: '', height: '',
-      age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '', weight: '60', height: '168',
+      // age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',weight: '', height: '', los: '0',
+      age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '', weight: '60', height: '168', los: '3',
       // cc: '',
       cc: `เหนื่อยมากขึ้น เบื่ออาหาร ปวดเอวมาก มียาแก้ปวดพอทุเลา เดินได้สะดวก`,
       // pi: '',
@@ -293,15 +293,12 @@ SPEP 21/4/69 : Monoclonal gammopathy (TP 13 g/dl, M spike 5.0 g/dl)
 
     // console.log('PayloadThai to AI API:', payloadThai);
 
-    let systemMessageEnglish1 = "You are a Medical Coder AI expert. Analyze the patient information and summarize the results in JSON format only, with the following keys: discharge_summary, principal_diagnosis, code icd-10 2016, secondary_diagnosis, code icd-10 2016 (if none put []), procedure, code icd-cm-9 2015.";
-    const systemMessageEnglish2 = `
-    You are an expert Clinical Documentation Improvement (CDI) Specialist and Certified Medical Coder. Your task is to analyze the provided patient medical records and extract clinical information for coding, billing, and DRG assignment.`+
-
+    let systemMessageEnglish1 = "You are a Medical Coder AI expert. Analyze the patient information and summarize the results in JSON format only, with the following keys: discharge_summary, principal_diagnosis, principal_icd_10_2016, secondary_diagnosis, secondary_icd_10_2016, procedure, procedure_icd_cm_9_2015.";
+    const systemMessageEnglish2 = `You are an expert Clinical Documentation Improvement (CDI) Specialist and Certified Medical Coder. Your task is to analyze the provided patient medical records and extract clinical information for coding, billing, and DRG assignment.` +
       `Strictly adhere to the following coding standards and guidelines:
 1. Diagnoses: Must be coded using ICD-10 (2016 version).
 2. Procedures: Must be coded using ICD-9-CM (2015 version).
-3. DRG Assignment: Calculate and assign the most appropriate Diagnosis-Related Group (DRG) based on the principal diagnosis, procedures performed, and secondary diagnoses (specifically evaluating for the presence of CC/MCC - Complications/Comorbidities or Major Complications).
-`+
+3. DRG Assignment: Calculate and assign the most appropriate Diagnosis-Related Group (DRG) based on the principal diagnosis, procedures performed, and secondary diagnoses (specifically evaluating for the presence of CC/MCC - Complications/Comorbidities or Major Complications).`+
       "Output your response STRICTLY in valid JSON format. Do not include any markdown formatting (such as ```json), explanations, or conversational text outside the JSON object." +
       `
 Use the following exact JSON schema:
@@ -420,51 +417,130 @@ If there are no secondary diagnoses or procedures, use an empty array [] for tho
     if (Array.isArray(result?.data?.choices)) {
       result.data.choices = await Promise.all(result?.data.choices.map(async (choice: any) => {
         choice.message.content = typeof choice.message.content === 'string' ? JSON.parse(choice.message.content) : choice.message.content;
+        choice.message.transform = {};
+        for (let key in choice.message.content) {
+          const value = choice.message.content[key];
+          const valueArray = Array.isArray(value) ? value : value.split(/,|;/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+
+          const keyLower = key.toLowerCase().replace(/\s+|_/g, '_');
+          if (keyLower.includes('secondary') && (keyLower.includes('code') || keyLower.includes('icd'))) {
+            choice.message.content.secondary_diagnosis_code = valueArray;
+          } else if (keyLower.includes('secondary') && keyLower.includes('diagnosis')) {
+            choice.message.content.secondary_diagnosis = valueArray;
+
+          } else if ((keyLower.includes('procedure') || keyLower.includes('cm')) && (keyLower.includes('code') || keyLower.includes('icd'))) {
+            choice.message.content['procedure_code'] = valueArray;
+          } else if (keyLower.includes('procedure')) {
+            choice.message.content.procedure = valueArray;
+
+          } else if ((keyLower.includes('principal') || keyLower.includes('code')) && (keyLower.includes('diagnosis_code') || keyLower.includes('icd'))) {
+            choice.message.content['principal_diagnosis_code'] = Array.isArray(value) ? value[0] : value;
+          } else if (keyLower.includes('principal') && keyLower.includes('diagnosis')) {
+            choice.message.content.principal_diagnosis = Array.isArray(value) ? value[0] : value;
+          }
+        }
+
+        choice.message.content.principal_diagnosis = {
+          code: (choice.message?.content['principal_diagnosis_code'] || '').toUpperCase(),
+          description: choice.message?.content?.principal_diagnosis || ''
+        }
+
+        if (!Array.isArray(choice.message.content.secondary_diagnosis)) {
+          choice.message.content.secondary_diagnosis = (choice.message.content.secondary_diagnosis || '').split(/,|;/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        }
+        if (!Array.isArray(choice.message.content.secondary_diagnosis_code)) {
+          choice.message.content.secondary_diagnosis_code = (choice.message.content.secondary_diagnosis_code || '').split(/,|;/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        }
+
+        if (typeof choice.message.content.procedure_code === 'string') {
+          choice.message.content.procedure_code = (choice.message.content.procedure_code || '').split(/,|;/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        }
+        if (typeof choice.message.content.procedure === 'string') {
+          choice.message.content.procedure = (choice.message.content.procedure || '').split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        }
+
         choice.message.reasoning = await this.nl2br(choice.message?.reasoning || '');
         return choice;
       }));
     }
     let responseData = result?.data || {};
-    const drg = this.drgCalculate(responseData);
+    const drg = await this.drgCalculate(responseData);
     this.aiResponse.set({ ...responseData, drg, processTimeMS: result?.processTimeMS });
+    console.log('AI Response:', this.aiResponse());
     this.toastr.success('', 'Success', { position: 'bottom-right', progress: true });
     this.activeTab.set('ai-result');
     this.isLoading.set(false);
   }
 
   async drgCalculate(row: any): Promise<any> {
-    const age = this.form.value.age;
+    const patientData = this.form.value;
+    console.log('Patient data for DRG calculation:', patientData);
+    const age = patientData.age;
     const dbo = dayjs().subtract(Number(age), 'year').format('YYYY-MM-DD');
     if (this.aiResponse) {
+      const datedsc = dayjs().format('YYYY-MM-DD');
+      const dateadm = dayjs(datedsc).subtract(Number(patientData.los) || 1, 'day').format('YYYY-MM-DD');
+      let result: any;
+
       let payload: any = {
-        age: this.form.value.age || '',
-        an: 'temp', dbo,
         hcode: this.userInfo()?.hospcode || this.userInfo()?.hcode9 || '',
-        los: this.form.value.los || 1,
-        actlos: this.form.value.los || 1,
-        sex: this.form.value.sex?.toString() || '',
+        an: 'temp', dbo,
+        age: patientData.age || '', ageday: '',
+        // dateadm, timeadm: '0000',
+        // datedsc, timedsc: '0000',
+        leaveday: 0,
+        los_day: Number(patientData.los) || 1,
+        sex: patientData.sex == 'ชาย' ? 1 : (patientData.sex == 'หญิง' ? 2 : 0),
         dischs: '2',
-        discht: '1', //this.form.value.dischargeStatus || '',
-        weight: this.form.value.weight || '',
-        pdx: (row?.choices?.[0]?.message?.content?.principal_diagnosis?.code || '').replace(/\./g, ''),
-        sdx: row?.choices?.[0]?.message?.content?.secondary_diagnosis
-          .map((r: any) => r?.code.replace(/\./g, '')),
-        proc: row?.choices?.[0]?.message?.content?.procedure
-          .map((r: any) => r?.code.replace(/\./g, '')),
+        discht: '1', //patientData.dischargeStatus || '',
+        weight: Number(patientData.weight || 0) || 0,
+        pdx: (row?.choices?.[0]?.message?.content?.principal_diagnosis.code || '').replace(/\./g, '').substring(0, 4),
+        sdx: row?.choices?.[0]?.message?.content?.secondary_diagnosis_code
+          .map((code: any) => code.replace(/\./g, '').substring(0, 4)),
+        proc: row?.choices?.[0]?.message?.content?.procedure_code
+          .map((code: any) => code.replace(/\./g, '')),
 
       };
-      console.log('DRG payload:', payload);
       const drgResult: any = await this.drgService.drgSeeker('6', [payload]);
-      console.log('DRG result:', drgResult);
       let drg = Array.isArray(drgResult?.data) && drgResult.data.length > 0 ? drgResult.data[0] : {};
-      console.log('DRG data:', drg);
       if (drg && drg?.drg) {
-        const result: any = await this.drgService.drgName(drg.drg);
-        console.log('DRG name result:', result);
-        if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
-          drg.drgname = result.data[0].drgname;
+        for (let key in drg) {
+          if (drg[key] === null || drg[key] === undefined || drg[key] === '') {
+            delete drg[key];
+          }
+        }
+        result = await this.drgService.drgName(drg.drg);
+        let rows = result?.rows || result?.data || [];
+        if (rows && Array.isArray(rows) && rows.length > 0) {
+          drg.drgname = rows[0].drgname;
+        }
+
+        if (Number(drg?.err || 0)) {
+          result = await this.drgService.drgError(drg?.err || '');
+          if (result?.rows && Array.isArray(result.rows) && result.rows.length > 0) {
+            drg.errorName = result.rows[0].name;
+          }
+        }
+        if (Number(drg?.warn || 0)) {
+          // warn คือเลขยกกำลัง 2 ของเลขฐาน 10 เช่น warn=3 คือมี warning 2 รายการ (1+2)
+          const warnNum = Number(drg?.warn || 0);
+          const warnList: any[] = await this.decodeWarning(warnNum);
+          drg.warningNames = '';
+          for (const warnCode of warnList) {
+            result = await this.drgService.drgWarning(warnCode.toString());
+            if (result?.rows && Array.isArray(result.rows) && result.rows.length > 0) {
+              drg.warningNames += (drg.warningNames ? ', ' : '') + result.rows[0].name;
+            }
+          }
         }
       }
+      // drg.dateadm = dayjs(dateadm).format('YYYY-MM-DD');
+      // drg.datedsc = dayjs(datedsc).format('YYYY-MM-DD');
+      delete drg.dateadm;
+      delete drg.timeadm;
+      delete drg.datedsc;
+      delete drg.timedsc;
+      
       return drg;
     } else {
       return {};
@@ -474,6 +550,19 @@ If there are no secondary diagnoses or procedures, use an empty array [] for tho
   async nl2br(text: string): Promise<string> {
     if (!text) return '';
     return text.replace(/\r\n|\n|\r/g, '<br>');
+  }
+
+  async decodeWarning(num: number): Promise<number[]> {
+    const powers = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+    const result = [];
+
+    for (let i = 0; i < powers.length; i++) {
+      if (num & powers[i]) {
+        result.push(powers[i]);
+      }
+    }
+
+    return result;
   }
 }
 

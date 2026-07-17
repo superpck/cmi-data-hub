@@ -30,7 +30,7 @@
               }
             ],
             "styles": [
-              "src/styles.css",
+              "src/styles.scss",
               "node_modules/ngx-pk-ui/styles/pk-ui.css",
               "node_modules/ngx-pk-ui/styles/pk-font.css"
             ]

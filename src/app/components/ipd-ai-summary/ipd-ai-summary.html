@@ -126,11 +126,16 @@
             <header class="flex items-center justify-between px-6 py-3 border-b border-gray-100
                      dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0">
               <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">AN {{ activeAN() }}</span>
-              <button type="button" form="ipd-form" [disabled]="isLoading()" (click)="onSubmit()" class="px-5 py-2 rounded-xl bg-green-700 text-white text-sm font-semibold
+              <button type="button" form="ipd-form" [disabled]="isLoading()" (click)="onSubmit()" class="flex items-center px-5 py-2 rounded-xl bg-green-700 text-white text-sm font-semibold
                  transition-all disabled:opacity-40 enabled:hover:bg-green-800
-                 focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2">
+                 focus-visible:outline-2 focus-visible:outline-green-700 focus-visible:outline-offset-2 gap-2">
                 <!-- @if (isLoading()) { กำลังประมวลผล... } @else { กำลังอยู่ในช่วงพัฒนา... } -->
-                @if (isLoading()) { กำลังประมวลผล... } @else { สรุป IPD Summary ด้วย AI }
+                @if (isLoading()) {
+                <div class="pk-spinner pk-spinner-inline pk-spinner-white"></div>
+                กำลังประมวลผล...
+                } @else {
+                สรุป IPD Summary ด้วย AI
+                }
               </button>
             </header>
 
@@ -425,13 +430,17 @@
               <div
                 class="p-4 bg-white dark:bg-slate-700 text-black dark:text-gray-100 rounded-md shadow border border-gray-300 dark:border-gray-600">
                 <div class="font-semibold text-lg mb-2">
-                  Process time: {{ aiResponse()?.processTimeMS/1000 | number: '0.2-2' }} sec.
+                  Process time:
+                  <span class="text-emerald-700">{{ aiResponse()?.processTimeMS/1000 | number: '0.2-2' }} sec.</span>
                 </div>
                 <h3 class="font-semibold text-lg mb-2">
                   index: {{ choice?.index }}
                 </h3>
+                <!-- <span class="font-bold text-orange-600 dark:text-yellow-500">
+                  Raw data of message and content
+                </span>
                 <pre
-                  class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto">{{ $safeNavigationMigration(choice?.message?.content) | json }}</pre>
+                  class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto text-wrap">{{ $safeNavigationMigration(choice?.message?.content) | json }}</pre> -->
 
                 @if (choice?.message?.content.discharge_summary) {
                 <div class="p-1 mt-4">
@@ -451,12 +460,14 @@
                   </span>
                   <div
                     class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
-                    {{ choice?.message?.content.principal_diagnosis?.description }}
+                    {{ choice?.message?.content.principal_diagnosis?.description || '' }}
+                    @if (choice?.message?.content.principal_diagnosis) {
                     <a class="text-green-700 font-bold mx-2"
                       href="https://icd.who.int/browse10/2016/en#/{{ choice?.message?.content.icd_10_pdx }}"
                       target="_blank">
-                      {{ choice?.message?.content.principal_diagnosis?.code }}
+                      {{ choice?.message?.content.principal_diagnosis?.code || '' }}
                     </a>
+                    }
                   </div>
                 </div>
                 <div class="p-1">
@@ -468,64 +479,92 @@
                     @if (choice?.message?.content?.secondary_diagnosis.length>0) {
                     @for (sdx of choice?.message?.content?.secondary_diagnosis; track sdx){
                     <!-- {{ choice?.message?.content?.secondary_diagnosis }} -->
-                    <div>{{ $index + 1 }}.{{ sdx.code }} {{ sdx.description }}</div>
+                    <div class="flex items-center gap-2">
+                      {{ $index + 1 }}. {{ sdx }}
+                      <div class="text-emerald-700">{{ choice?.message?.content?.secondary_diagnosis_code[$index] || ''
+                        }}</div>
+                    </div>
                     }
                     }
                   </div>
                 </div>
                 <div class="p-1">
                   <span class="font-bold text-orange-600 dark:text-yellow-500">
-                    Procedure ({{ choice?.message?.content.procedure.length | number }} items)
+                    Procedure ({{ choice?.message?.content?.procedure.length | number }} items)
                   </span>
                   <div
                     class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
                     @for (proc of choice?.message?.content?.procedure; track proc){
-                    <div>{{ $index + 1 }}.{{ proc.code }} {{ proc.description }}</div>
+                    <div class="flex items-center gap-2">
+                      {{ $index + 1 }}. {{ proc }}
+                      <div class="text-emerald-700">{{ choice?.message?.content?.procedure_code[$index] || '' }}</div>
+                    </div>
                     }
                   </div>
                 </div>
                 @if(aiResponse()?.drg){
-                <div class="p-1">
-                  <span class="font-bold text-orange-600 dark:text-yellow-500">
+                <div class="p-1 flex flex-col">
+                  <div class="font-bold text-orange-600 dark:text-yellow-500">
                     DRG Calulation
-                  </span>
-                  <pre>{{ aiResponse()?.drg | json }} </pre>
-                  <div
-                    class="flex items-center bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1">
-                    <span class=mr-3>
-                      DRG Group:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.drg }}</span>
-                    </span>
-                    <span class=mr-3>
-                      DRG Name:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.drgName }}</span>
-                    </span>
-                    <span class=mr-3>
-                      AdjRW:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.adjRW | number:
-                        '0.4-4' }}</span>
-                    </span>
-                    <span class=mr-3>
-                      WtLos:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.wtLos | number:
-                        '0.2-2' }}</span>
-                    </span>
-                    <span class=mr-3>
-                      OT:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.ot | number }}</span>
-                    </span>
-                    <span class=mr-3>
-                      Error:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.err || '' }}</span>
-                    </span>
-                    <span class=mr-3>
-                      Warning:
-                      <span class="text-teal-700 text-lg font-semibold ml-3">{{ aiResponse()?.drg?.warn || '' }}</span>
-                    </span>
                   </div>
+                  <div
+                    class="items-top bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1 gap-2 text-wrap">
+                    <div class="flex items-top gap-4 text-sm">
+                      <div class="text-nowrap gap-2">
+                        DRG Group:
+                        <span class="text-teal-700 text-lg font-semibold">{{ aiResponse()?.drg?.drg }}</span>
+                      </div>
+                      <div class="text-nowrap gap-2">
+                        DRG Name:
+                        <span class="text-teal-700 text-lg font-semibold">{{ aiResponse()?.drg?.drgname }}</span>
+                      </div>
+                      <div class="text-nowrap gap-2">
+                        AdjRW:
+                        <span class="text-teal-700 text-lg font-semibold">
+                          {{ aiResponse()?.drg?.adjrw | number:'0.4-4' }}
+                        </span>
+                      </div>
+                      <div class="text-nowrap gap-2">
+                        WtLos:
+                        <span class="text-teal-700 text-lg font-semibold">
+                          {{ aiResponse()?.drg?.wtlos | number:'0.2-2' }} วัน
+                        </span>
+                      </div>
+                      <div class="text-nowrap gap-2">
+                        OT:
+                        <span class="text-teal-700 text-lg font-semibold">
+                          {{ aiResponse()?.drg?.ot | number }} วัน
+                        </span>
+                      </div>
+                    </div>
+                    <div class="items-top gap-2 text-sm">
+                      <div class="flex text-nowrap gap-2">
+                        Error:
+                        <span class="text-red-700 font-semibold gap-2">
+                          {{ aiResponse()?.drg?.err }}
+                          @if(aiResponse()?.drg?.errorName){
+                          <span>{{ aiResponse()?.drg?.errorName }}</span>
+                          }
+                        </span>
+                      </div>
+                      <div class="flex text-nowrap gap-2">
+                        Warning:
+                        <div class="flex text-orange-700 font-semibold gap-2">
+                          {{ aiResponse()?.drg?.warn }}
+                          @if(aiResponse()?.drg?.warningNames) {
+                          <span>
+                            {{ aiResponse()?.drg?.warningNames }}
+                          </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <pre
+                    class="max-h-80 overflow-auto border border-slate-300 rounded px-4">{{ aiResponse()?.drg | json }} </pre>
                 </div>
                 }
-                <div class="p-1">
+                <!-- <div class="p-1">
                   <span class="font-bold text-orange-600 dark:text-yellow-500">
                     Reasoning ({{choice?.message?.reasoning.length | number}} chars)
                   </span>
@@ -533,7 +572,7 @@
                     class="bg-gray-200 dark:bg-slate-800 text-black dark:text-gray-100 p-4 rounded-md overflow-auto mt-1"
                     [innerHTML]="choice?.message?.reasoning">
                   </div>
-                </div>
+                </div> -->
 
                 <div class="p-1 pt-4">
                   <span class="font-bold text-purple-600 dark:text-purple-400">

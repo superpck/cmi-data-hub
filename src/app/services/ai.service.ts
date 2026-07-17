@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
+import { catchError, of, timeout, firstValueFrom } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import Config from '../configs/config';
 
 @Injectable({
@@ -27,6 +26,7 @@ export class AIService {
 
       const result: any = await firstValueFrom(
         this.http.post(`${this.url}/AI/completions`, { messages }).pipe(
+          timeout(180000),
           catchError((error: HttpErrorResponse) => {
             // error.error คือ JSON Body ที่ Angular parser ให้แล้ว
             // ใช้ of() เพื่อส่งค่ากลับเข้าไปใน stream ในฐานะ "ค่าปกติ" (ไม่ใช่ error)
