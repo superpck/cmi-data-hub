@@ -145,45 +145,45 @@ export class IpdAiSummary {
     this.form.reset({
       sex: this.sexOptions[0],
       dischargeStatus: this.dischargeStatusOptions[1],
-      // age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',weight: '', height: '', los: '0',
-      age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '', weight: '60', height: '168', los: '3',
-      // cc: '',
-      cc: `เหนื่อยมากขึ้น เบื่ออาหาร ปวดเอวมาก มียาแก้ปวดพอทุเลา เดินได้สะดวก`,
-      // pi: '',
-      pi: `Case CA Rectum
-S/P LAR 28/10/65 @KKH
-Patho : Rectosigmoid colon, resection: 28/10/2565
-- Adenocarcinoma, moderately differentiated, invading through muscular layer into pericolic fat.
-`,
+      age: '', sbp: '', dbp: '', rr: '', hr: '', coma: '',weight: '', height: '', los: '0',
+      // age: '55', sbp: '120', dbp: '80', rr: '22', hr: '77', coma: '', weight: '60', height: '168', los: '3',
+      cc: '',
+      // cc: `เหนื่อยมากขึ้น เบื่ออาหาร ปวดเอวมาก มียาแก้ปวดพอทุเลา เดินได้สะดวก`,
+      pi: '',
+//       pi: `Case CA Rectum
+// S/P LAR 28/10/65 @KKH
+// Patho : Rectosigmoid colon, resection: 28/10/2565
+// - Adenocarcinoma, moderately differentiated, invading through muscular layer into pericolic fat.
+// `,
       pmh: '',
-      // progressNotes: '',
-      progressNotes: `reverse A/G ratio r/o MM
-Diagnosis : CA colon S/P surgery
-Patho : 1. Rectosigmoid colon, resection:
-- Adenocarcinoma, moderately differentiated, invading through muscular layer into pericolic fat.
-- No angiolymphatic invasion.
-- Free proximal, distal and radial resected margins.
-- No metastatic carcinoma in all sixteen pericolic lymph nodes (0/16).
-`,
+      progressNotes: '',
+//       progressNotes: `reverse A/G ratio r/o MM
+// Diagnosis : CA colon S/P surgery
+// Patho : 1. Rectosigmoid colon, resection:
+// - Adenocarcinoma, moderately differentiated, invading through muscular layer into pericolic fat.
+// - No angiolymphatic invasion.
+// - Free proximal, distal and radial resected margins.
+// - No metastatic carcinoma in all sixteen pericolic lymph nodes (0/16).
+// `,
       nurseNotes: '',
       consultNotes: '',
-      // labResults: '',
-      labResults: `Lab Cr 1.89
-Uric 11.3
-Alb 3.6 Glob 9.2
-Na 128 K 3.8 Ca 11.3
-Hb 6.7 Hct 20.6 Plt 151000
-Imp: MM with anemia and hypercalcemia AKI
-Mx: Admit for hydration and blood transfusion
-`,
-      // imagingReports: '',
-      imagingReports: `NOTE: Immunohistochemical studies for CD138, Kappa and Lambda are pending.
-Addendum 1
-- Consistent with marrow involvement by plasma cell neoplasm, supported by immunohistochemistry
-- Immunohistochemical studies show CD138-highlighted plasma cells (90%) with Kappa light chain restriction (Kappa:Lambda ratio more than 20:1).
+      labResults: '',
+//       labResults: `Lab Cr 1.89
+// Uric 11.3
+// Alb 3.6 Glob 9.2
+// Na 128 K 3.8 Ca 11.3
+// Hb 6.7 Hct 20.6 Plt 151000
+// Imp: MM with anemia and hypercalcemia AKI
+// Mx: Admit for hydration and blood transfusion
+// `,
+      imagingReports: '',
+//       imagingReports: `NOTE: Immunohistochemical studies for CD138, Kappa and Lambda are pending.
+// Addendum 1
+// - Consistent with marrow involvement by plasma cell neoplasm, supported by immunohistochemistry
+// - Immunohistochemical studies show CD138-highlighted plasma cells (90%) with Kappa light chain restriction (Kappa:Lambda ratio more than 20:1).
 
-SPEP 21/4/69 : Monoclonal gammopathy (TP 13 g/dl, M spike 5.0 g/dl)
-`,
+// SPEP 21/4/69 : Monoclonal gammopathy (TP 13 g/dl, M spike 5.0 g/dl)
+// `,
     });
     this.toastr.info('', 'reset form', { position: 'bottom-right', progress: true });
   }
@@ -540,7 +540,7 @@ If there are no secondary diagnoses or procedures, use an empty array [] for tho
       delete drg.timeadm;
       delete drg.datedsc;
       delete drg.timedsc;
-      
+
       return drg;
     } else {
       return {};
